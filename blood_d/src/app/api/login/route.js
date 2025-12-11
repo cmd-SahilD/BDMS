@@ -1,42 +1,60 @@
 import { NextResponse } from "next/server";
-import connectToDatabase from "@/lib/db.js";
-import User from "@/models/User.js";
+import connectToDatabase from "@/lib/db";
+import User from "@/models/User";
+import bcrypt from "bcryptjs";
+import * as jose from "jose";
 
 export async function POST(req) {
   try {
-    // Connect to DB
     await connectToDatabase();
 
-    // Parse JSON body
-    const body = await req.json();
-    console.log("Received data:", body);
+    const { email, password } = await req.json();
 
-    const { email, password } = body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+    }
 
-    // Optional: check if user already exists
-      const existingUser = await User.findOne({ email });
-      if (!existingUser) {
-        return NextResponse.json(
-        { error: "User doesnot exists" },
-        { status: 400 }
-      );
-   }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+    }
 
-    // Save new user
-    //const newUser = new User({ username:name, email, password }); // You can hash password here
-    //await newUser.save();
+    // Generate JWT
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET || "default_secret_please_change");
+    const token = await new jose.SignJWT({
+      userId: user._id.toString(),
+      email: user.email,
+      role: user.role
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('24h')
+      .sign(secret);
 
-       return NextResponse.json(
-      { message: "User stored successfully",},
-      { status: 201 }
-        );
+    const response = NextResponse.json({
+      message: "Login successful",
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        bloodType: user.bloodType,
+      }
+    }, { status: 200 });
 
-  }
-   catch (error) {
-    console.error("Error storing user:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    // Set HTTP-only cookie
+    response.cookies.set("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 60 * 60 * 24, // 1 day
+      path: "/",
+    });
+
+    return response;
+  } catch (error) {
+    console.error("Login error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
