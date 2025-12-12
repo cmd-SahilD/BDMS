@@ -3,12 +3,38 @@ import connectToDatabase from "@/lib/db";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
 import * as jose from "jose";
+import fs from "fs";
+import path from "path";
 
 export async function POST(req) {
   try {
     await connectToDatabase();
 
     const { email, password } = await req.json();
+
+    // #region agent log
+    const logPayload = {
+      sessionId: 'debug-session',
+      runId: 'run1',
+      hypothesisId: 'H4',
+      location: 'api/login:entry',
+      message: 'Login attempt',
+      data: { email },
+      timestamp: Date.now()
+    };
+    fetch(new URL('/api/__agent_log', req.url), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(logPayload)
+    }).catch(() => { });
+    try {
+      const logPath = path.join(process.cwd(), ".cursor", "debug.log");
+      fs.mkdirSync(path.dirname(logPath), { recursive: true });
+      fs.appendFileSync(logPath, JSON.stringify({ ...logPayload, message: 'Login attempt (fs)' }) + "\n");
+    } catch (err) {
+      // swallow logging errors
+    }
+    // #endregion
 
     const user = await User.findOne({ email });
     if (!user) {
