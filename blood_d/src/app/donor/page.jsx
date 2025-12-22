@@ -161,7 +161,9 @@ export default function DonorDashboard() {
                 <p className="text-gray-500 text-xs mb-6 -mt-2">Manage your donor profile</p>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <QAction title="Download Certificate" sub="Get your donation certificate" icon={Download} color="blue" />
+                    <Link href="/donor/certificate" className="block">
+                        <QAction title="Download Certificate" sub="Get your donation certificate" icon={Download} color="blue" />
+                    </Link>
                     <QAction title="Share Achievement" sub="Share your impact with others" icon={Share2} color="green" />
                     <QAction title="Schedule Donation" sub="Book your next donation" icon={CalendarCheck} color="red" />
                     <QAction title="Invite Friends" sub="Grow the donor community" icon={UserPlus} color="purple" />
