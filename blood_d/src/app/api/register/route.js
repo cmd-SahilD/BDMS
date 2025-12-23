@@ -7,7 +7,7 @@ export async function POST(req) {
   try {
     await connectToDatabase();
 
-    const { name, email, password, role, bloodType, phone, address, facilityName, licenseNumber } = await req.json();
+    const { name, email, password, role, bloodType, phone, address, facilityName, licenseNumber, weight, age } = await req.json();
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -26,6 +26,8 @@ export async function POST(req) {
       address,
       facilityName,
       licenseNumber,
+      weight: role === 'donor' ? weight : undefined,
+      age: role === 'donor' ? age : undefined,
     });
 
     await newUser.save();

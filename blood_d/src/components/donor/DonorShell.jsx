@@ -25,7 +25,11 @@ export default function DonorShell({ children, user }) {
                     <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white font-bold">
                         B
                     </div>
-                    <div>
+                    <div 
+                        className="cursor-pointer" 
+                        onClick={() => window.location.reload()}
+                        title="Click to reload page"
+                    >
                         <span className="text-sm font-bold text-gray-900 block leading-none">BloodConnect</span>
                         <span className="text-[10px] text-gray-400 font-medium">Donor Portal</span>
                     </div>
@@ -35,13 +39,11 @@ export default function DonorShell({ children, user }) {
                     <div className="text-xs font-semibold text-red-500 mb-4 px-2 uppercase tracking-wider">Donor Portal</div>
                     <nav className="space-y-1">
                         <NavItem href="/donor" icon={LayoutDashboard} label="Dashboard" active={pathname === "/donor"} />
-                        <NavItem href="/donor/profile" icon={User} label="My Profile" active={pathname === "/donor/profile"} />
+
                         <NavItem href="/donor/history" icon={History} label="Donation History" active={pathname === "/donor/history"} />
                         <NavItem href="/donor/camps" icon={Tent} label="Blood Camps" active={pathname === "/donor/camps"} />
                     </nav>
                 </div>
-
-
             </aside>
 
             {/* Main Content */}
@@ -87,14 +89,14 @@ export default function DonorShell({ children, user }) {
                                             <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                                         </div>
                                         <div className="p-1">
-                                            <button className="flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                                            <Link href="/donor/profile" className="flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
                                                 <User className="w-4 h-4" />
                                                 Profile
-                                            </button>
-                                            <button className="flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                                            </Link>
+                                            <Link href="/donor/settings" className="flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
                                                 <Settings className="w-4 h-4" />
                                                 Settings
-                                            </button>
+                                            </Link>
                                         </div>
                                         <div className="border-t border-gray-50 p-1 mt-1">
                                             <button

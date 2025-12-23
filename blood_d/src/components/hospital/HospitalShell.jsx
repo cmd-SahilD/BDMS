@@ -25,7 +25,11 @@ export default function HospitalShell({ children, user }) {
                     <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold">
                         <Building2 className="w-5 h-5" />
                     </div>
-                    <div>
+                    <div 
+                        className="cursor-pointer" 
+                        onClick={() => window.location.reload()}
+                        title="Click to reload page"
+                    >
                         <span className="text-sm font-bold text-gray-900 block leading-none">Hospital Management</span>
                         <span className="text-[10px] text-gray-400 font-medium">Blood Request & Inventory</span>
                     </div>

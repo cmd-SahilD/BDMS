@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { LayoutDashboard, ShieldCheck, Building2, Users, LogOut, Bell, ChevronDown, User, Settings } from "lucide-react";
+import { LayoutDashboard, ShieldCheck, Building2, Users, LogOut, Bell, ChevronDown, User, Settings, History, Tent } from "lucide-react";
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from "react";
 import axios from "axios";
@@ -9,6 +9,7 @@ export default function AdminShell({ children, user }) {
     const pathname = usePathname();
     const [pendingCount, setPendingCount] = useState(0);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
     // Fetch notifications client-side (non-critical)
     useEffect(() => {
@@ -51,14 +52,12 @@ export default function AdminShell({ children, user }) {
                         <NavItem href="/admin/verification" icon={ShieldCheck} label="Verification" active={pathname === '/admin/verification'} count={pendingCount} />
                         <NavItem href="/admin/facilities" icon={Building2} label="Facilities" active={pathname === '/admin/facilities'} />
                         <NavItem href="/admin/donors" icon={Users} label="Donors" active={pathname === '/admin/donors'} />
+                        <NavItem href="/admin/donations" icon={History} label="Donations" active={pathname === '/admin/donations'} />
+                        <NavItem href="/admin/camps" icon={Tent} label="Blood Camps" active={pathname === '/admin/camps'} />
                     </nav>
                 </div>
 
-                <div className="mt-auto p-4 border-t border-gray-50">
-                    <div className="px-4 py-3 text-xs text-gray-400 text-center">
-                        BBMS v1.0.0
-                    </div>
-                </div>
+
             </aside>
 
             {/* Main Content */}
@@ -71,16 +70,68 @@ export default function AdminShell({ children, user }) {
 
                     <div className="flex items-center gap-6">
                         <div className="relative">
-                            <button className="relative p-2 text-gray-400 hover:text-red-600 transition-colors">
+                            <button 
+                                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                                className="relative p-2 text-gray-400 hover:text-red-600 transition-colors outline-none"
+                            >
                                 <Bell className="w-5 h-5" />
                                 {pendingCount > 0 && (
                                     <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
                                 )}
                             </button>
-                            {pendingCount > 0 && (
-                                <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-100 rounded-lg shadow-lg p-2 text-xs text-gray-600 z-20">
-                                    <strong>{pendingCount}</strong> Pending Facilities
-                                </div>
+                            
+                            {isNotificationsOpen && (
+                                <>
+                                    <div 
+                                        className="fixed inset-0 z-10"
+                                        onClick={() => setIsNotificationsOpen(false)}
+                                    ></div>
+                                    <div className="absolute top-full right-0 mt-2 w-72 bg-white border border-gray-100 rounded-xl shadow-xl z-20 overflow-hidden">
+                                        <div className="px-4 py-3 border-b border-gray-50 bg-gray-50 flex items-center justify-between">
+                                            <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">Notifications</span>
+                                            {pendingCount > 0 && (
+                                                <span className="px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 text-[10px] font-bold">
+                                                    {pendingCount} New
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="max-h-80 overflow-y-auto">
+                                            {pendingCount > 0 ? (
+                                                <Link 
+                                                    href="/admin/verification" 
+                                                    onClick={() => setIsNotificationsOpen(false)}
+                                                    className="block p-4 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+                                                >
+                                                    <div className="flex gap-3">
+                                                        <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 shrink-0">
+                                                            <ShieldCheck className="w-4 h-4" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs font-bold text-gray-900">Pending Approvals</p>
+                                                            <p className="text-[10px] text-gray-500 mt-0.5">There are {pendingCount} facilities waiting for verification.</p>
+                                                        </div>
+                                                    </div>
+                                                </Link>
+                                            ) : (
+                                                <div className="p-8 text-center">
+                                                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 mx-auto mb-3">
+                                                        <Bell className="w-5 h-5" />
+                                                    </div>
+                                                    <p className="text-xs text-gray-500">No new notifications</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {pendingCount > 0 && (
+                                            <Link 
+                                                href="/admin/verification"
+                                                onClick={() => setIsNotificationsOpen(false)}
+                                                className="block py-2 text-center text-[10px] font-bold text-red-600 hover:bg-red-50 transition-colors uppercase tracking-tight"
+                                            >
+                                                View All Requests
+                                            </Link>
+                                        )}
+                                    </div>
+                                </>
                             )}
                         </div>
 

@@ -1,6 +1,49 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 import User from "@/models/User";
+import bcrypt from "bcryptjs";
+
+export async function POST(req) {
+    try {
+        await connectToDatabase();
+
+        const { facilityName, email, password, role, phone, licenseNumber, address } = await req.json();
+
+        // Validate role is either hospital or lab
+        if (!["hospital", "lab"].includes(role)) {
+            return NextResponse.json({ error: "Invalid role. Must be hospital or lab." }, { status: 400 });
+        }
+
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return NextResponse.json({ error: "User with this email already exists" }, { status: 400 });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newFacility = new User({
+            facilityName,
+            name: facilityName, // For consistency
+            email,
+            password: hashedPassword,
+            role,
+            phone,
+            licenseNumber,
+            address,
+            isVerified: true // Admin created facilities are verified by default
+        });
+
+        await newFacility.save();
+
+        const response = newFacility.toObject();
+        delete response.password;
+
+        return NextResponse.json(response, { status: 201 });
+    } catch (error) {
+        console.error("Facility creation error:", error);
+        return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+    }
+}
 
 export async function GET(req) {
     try {

@@ -41,7 +41,7 @@ export default function LoginPage() {
                     router.push("/hospital");
                     break;
                 case "lab":
-                    router.push("/lab");
+                    router.push("/blood-bank");
                     break;
                 default:
                     router.push("/donor");
@@ -77,7 +77,7 @@ export default function LoginPage() {
                     <div className="text-center mb-8">
                         <h1 className="text-2xl font-bold text-gray-900 mb-2">Login to Blood Bank</h1>
                         <p className="text-gray-500 text-sm">
-                            Access your donor, hospital, or lab dashboard
+                            Access your donor, hospital, or blood bank dashboard
                         </p>
                     </div>
 

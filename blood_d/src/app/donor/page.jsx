@@ -1,7 +1,51 @@
+"use client";
 import { Heart, Activity, Droplets, Trophy, Calendar, Download, Share2, UserPlus, Clock, Scale, CalendarCheck } from "lucide-react";
 import Link from 'next/link';
+import { useState, useEffect } from "react";
 
 export default function DonorDashboard() {
+    const [user, setUser] = useState(null);
+    const [donations, setDonations] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+        fetchDonations();
+    }, []);
+
+    const fetchDonations = async () => {
+        try {
+            const response = await axios.get("/api/donations");
+            setDonations(response.data.donations || []);
+        } catch (error) {
+            console.error("Error fetching donor donations:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const stats = {
+        totalDonations: donations.length,
+        livesImpacted: donations.length * 3,
+        lastDonationDate: donations.length > 0 ? new Date(donations[0].date) : null,
+    };
+
+    const getEligibility = () => {
+        if (!stats.lastDonationDate) return { canDonate: true, daysLeft: 0 };
+        const cooldown = 90;
+        const diff = Math.ceil((new Date() - stats.lastDonationDate) / (1000 * 60 * 60 * 24));
+        return { 
+            canDonate: diff >= cooldown, 
+            daysLeft: Math.max(0, cooldown - diff),
+            nextDate: new Date(stats.lastDonationDate.getTime() + cooldown * 24 * 60 * 60 * 1000).toLocaleDateString()
+        };
+    };
+
+    const eligibility = getEligibility();
+
     return (
         <div className="space-y-8">
             {/* Header */}
@@ -9,100 +53,52 @@ export default function DonorDashboard() {
                 <div>
                     <div className="flex items-center gap-2 mb-1">
                         <Heart className="w-6 h-6 text-red-600 fill-red-600" />
-                        <h1 className="text-2xl font-bold text-gray-900">Donor Dashboard</h1>
+                        <h1 className="text-2xl font-bold text-gray-900">Welcome, {user?.name || 'Donor'}</h1>
                     </div>
                     <p className="text-gray-500 text-sm">Track your donation journey and impact</p>
                 </div>
-                <button className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 bg-white">
-                    Refresh Data
-                </button>
             </div>
 
             {/* Banner */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-center gap-3">
-                <div className="p-2 bg-yellow-100 rounded-full text-yellow-600">
-                    <Clock className="w-5 h-5" />
-                </div>
-                <div>
-                    <h4 className="font-bold text-yellow-800 text-sm">Next Donation Available</h4>
-                    <p className="text-yellow-700 text-xs">You can donate again in 87 days</p>
-                </div>
-            </div>
-
-            {/* Profile Card */}
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="flex items-center gap-4 w-full">
-                    <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-600">
-                        <UserPlus className="w-6 h-6" />
+            {!eligibility.canDonate && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-center gap-3">
+                    <div className="p-2 bg-yellow-100 rounded-full text-yellow-600">
+                        <Clock className="w-5 h-5" />
                     </div>
                     <div>
-                        <h3 className="font-bold text-gray-900">Donor Profile</h3>
-                        <div className="flex gap-6 mt-1 text-sm text-gray-500">
-                            <div>
-                                <span className="block text-[10px] uppercase tracking-wider text-gray-400">Email</span>
-                                suruuuu@gmail.com
-                            </div>
-                            <div>
-                                <span className="block text-[10px] uppercase tracking-wider text-gray-400">Phone</span>
-                                6666666666
-                            </div>
-                        </div>
+                        <h4 className="font-bold text-yellow-800 text-sm">Next Donation Available</h4>
+                        <p className="text-yellow-700 text-xs">You can donate again in {eligibility.daysLeft} days ({eligibility.nextDate})</p>
                     </div>
                 </div>
-
-                <div className="flex items-center gap-8 w-full md:w-auto border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-8">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-600 font-bold">
-                            <Droplets className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <span className="block text-[10px] uppercase tracking-wider text-gray-400">Blood Type</span>
-                            <span className="font-bold text-gray-900">A+</span>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-600 font-bold">
-                            <Activity className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <span className="block text-[10px] uppercase tracking-wider text-gray-400">Location</span>
-                            <span className="font-bold text-gray-900">Mumbai, Maharashtra</span>
-                        </div>
-                    </div>
-                </div>
-
-                <span className="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full whitespace-nowrap">
-                    Not Eligible
-                </span>
-            </div>
+            )}
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <StatCard
                     title="Total Donations"
-                    value="1"
-                    sub="5 to next milestone"
+                    value={stats.totalDonations}
+                    sub={`${5 - (stats.totalDonations % 5)} to next milestone`}
                     icon={Droplets}
                     color="red"
                 />
                 <StatCard
                     title="Lives Impacted"
-                    value="3"
+                    value={stats.livesImpacted}
                     sub="3 lives per donation"
                     icon={Activity}
                     color="green"
                 />
                 <StatCard
                     title="Achievement Level"
-                    value="Bronze"
+                    value={stats.totalDonations >= 10 ? "Gold" : stats.totalDonations >= 5 ? "Silver" : "Bronze"}
                     sub="Keep donating to level up"
                     icon={Trophy}
                     color="purple"
                 />
                 <StatCard
                     title="Next Eligible"
-                    value="2/25/2026"
-                    sub="87 days left"
+                    value={eligibility.canDonate ? "Ready now" : eligibility.nextDate}
+                    sub={eligibility.canDonate ? "Visit a camp today" : `${eligibility.daysLeft} days left`}
                     icon={Calendar}
                     color="blue"
                 />
@@ -117,56 +113,38 @@ export default function DonorDashboard() {
                     </h3>
                     <p className="text-gray-500 text-xs mb-6">Your blood donation journey</p>
 
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600">
-                                <Droplets className="w-4 h-4" />
-                            </div>
-                            <div>
-                                <p className="font-bold text-gray-900 text-sm">N/A</p>
-                                <p className="text-gray-400 text-xs">11/27/2025 • A+</p>
-                            </div>
-                        </div>
-                        <div className="text-right">
-                            <p className="font-bold text-gray-900 text-sm">1 unit</p>
-                            <span className="text-green-600 text-xs font-medium">Completed</span>
-                        </div>
+                    <div className="space-y-3">
+                        {loading ? (
+                            <div className="flex justify-center py-4"><Loader2 className="animate-spin text-red-500" /></div>
+                        ) : donations.length > 0 ? (
+                            donations.slice(0, 3).map(donation => (
+                                <div key={donation._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+                                            <Droplets className="w-4 h-4" />
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-gray-900 text-sm">{donation.location}</p>
+                                            <p className="text-gray-400 text-xs">{new Date(donation.date).toLocaleDateString()} • {donation.type}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-bold text-gray-900 text-sm">{donation.units} unit{donation.units > 1 ? 's' : ''}</p>
+                                        <span className="text-green-600 text-xs font-medium uppercase tracking-tighter">{donation.status}</span>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-center py-8 text-gray-400 text-sm">No donation records yet</div>
+                        )}
                     </div>
                 </div>
 
                 {/* Recent Activity/Updates */}
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                    <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-gray-400" />
-                        Recent Activity
-                    </h3>
-                    <p className="text-gray-500 text-xs mb-6">Latest updates and achievements</p>
-
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <h4 className="font-bold text-gray-900 text-sm">Donation</h4>
-                            <p className="text-gray-500 text-xs mt-1">Blood donation completed</p>
-                        </div>
-                        <span className="text-gray-400 text-xs">Invalid Date</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div>
-                <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                    <ShieldCheckIcon className="w-5 h-5 text-gray-400" />
-                    Quick Actions
-                </h3>
-                <p className="text-gray-500 text-xs mb-6 -mt-2">Manage your donor profile</p>
-
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <Link href="/donor/certificate" className="block">
-                        <QAction title="Download Certificate" sub="Get your donation certificate" icon={Download} color="blue" />
-                    </Link>
-                    <QAction title="Share Achievement" sub="Share your impact with others" icon={Share2} color="green" />
-                    <QAction title="Schedule Donation" sub="Book your next donation" icon={CalendarCheck} color="red" />
-                    <QAction title="Invite Friends" sub="Grow the donor community" icon={UserPlus} color="purple" />
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm text-center flex flex-col items-center justify-center min-h-[200px]">
+                    <Clock className="w-12 h-12 text-gray-200 mb-4" />
+                    <h3 className="font-bold text-gray-800 mb-2">Automated Tracking</h3>
+                    <p className="text-gray-500 text-xs px-4">Your donation records are automatically synced when a Blood Bank logs your contribution.</p>
                 </div>
             </div>
 
@@ -179,10 +157,10 @@ export default function DonorDashboard() {
                 <p className="text-gray-500 text-xs mb-6 -mt-2">Your health metrics</p>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <HealthCard label="Age" value="21" icon={UserPlus} />
-                    <HealthCard label="Weight" value="46 kg" icon={Scale} />
-                    <HealthCard label="Last Donation" value="11/27/2025" icon={Calendar} />
-                    <HealthCard label="Donor Since" value="2025" icon={Trophy} />
+                    <HealthCard label="Age" value={user?.age || "N/A"} icon={UserPlus} />
+                    <HealthCard label="Weight" value={user?.weight ? `${user.weight} kg` : "N/A"} icon={Scale} />
+                    <HealthCard label="Last Donation" value={stats.lastDonationDate ? stats.lastDonationDate.toLocaleDateString() : "Never"} icon={Calendar} />
+                    <HealthCard label="Donor Since" value={user?.createdAt ? new Date(user.createdAt).getFullYear() : "2025"} icon={Trophy} />
                 </div>
             </div>
         </div>

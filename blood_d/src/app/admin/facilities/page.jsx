@@ -10,6 +10,23 @@ export default function FacilitiesPage() {
     const [filterStatus, setFilterStatus] = useState('All Status');
     const [searchTerm, setSearchTerm] = useState('');
 
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [addLoading, setAddLoading] = useState(false);
+    const [formData, setFormData] = useState({
+        facilityName: "",
+        email: "",
+        password: "",
+        role: "hospital",
+        phone: "",
+        licenseNumber: "",
+        address: {
+            street: "",
+            city: "",
+            state: "",
+            zip: ""
+        }
+    });
+
     const fetchFacilities = async () => {
         try {
             setLoading(true);
@@ -25,6 +42,31 @@ export default function FacilitiesPage() {
     useEffect(() => {
         fetchFacilities();
     }, []);
+
+    const handleAddFacility = async (e) => {
+        e.preventDefault();
+        setAddLoading(true);
+        try {
+            await axios.post("/api/admin/facilities", formData);
+            setIsAddModalOpen(false);
+            fetchFacilities();
+            setFormData({
+                facilityName: "",
+                email: "",
+                password: "",
+                role: "hospital",
+                phone: "",
+                licenseNumber: "",
+                address: { street: "", city: "", state: "", zip: "" }
+            });
+            alert("Medical facility created successfully!");
+        } catch (error) {
+            console.error("Error creating facility:", error);
+            alert(error.response?.data?.error || "Failed to create facility");
+        } finally {
+            setAddLoading(false);
+        }
+    };
 
     const handleUpdateStatus = async (id, status) => {
         try {
@@ -74,11 +116,19 @@ export default function FacilitiesPage() {
                     </div>
                     <p className="text-gray-500 text-sm ml-11">Manage and view all registered hospitals and blood laboratories</p>
                 </div>
-                <button
-                    onClick={fetchFacilities}
-                    className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors bg-white">
-                    Refresh Data
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={fetchFacilities}
+                        className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors bg-white">
+                        Refresh Data
+                    </button>
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 transition-colors flex items-center gap-2">
+                        <Plus className="w-4 h-4" />
+                        Add Facility
+                    </button>
+                </div>
             </div>
 
             {/* Stats Row */}
@@ -145,6 +195,139 @@ export default function FacilitiesPage() {
                             onUpdateStatus={handleUpdateStatus}
                         />
                     ))}
+                </div>
+            )}
+
+            {/* Add Facility Modal */}
+            {isAddModalOpen && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden">
+                        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-red-50">
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-900">Add New Facility</h2>
+                                <p className="text-gray-500 text-sm">Manually register a hospital or blood bank</p>
+                            </div>
+                            <button onClick={() => setIsAddModalOpen(false)} className="p-2 hover:bg-gray-200 rounded-full text-gray-500">
+                                <Plus className="w-5 h-5 rotate-45" />
+                            </button>
+                        </div>
+                        
+                        <form onSubmit={handleAddFacility} className="p-6 space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="col-span-2">
+                                    <label className="block text-sm font-bold text-gray-700 mb-1 uppercase tracking-tight text-[10px]">Facility Name</label>
+                                    <input 
+                                        type="text"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
+                                        value={formData.facilityName}
+                                        onChange={(e) => setFormData({...formData, facilityName: e.target.value})}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-1 uppercase tracking-tight text-[10px]">Email Address</label>
+                                    <input 
+                                        type="email"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-1 uppercase tracking-tight text-[10px]">Password</label>
+                                    <input 
+                                        type="password"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
+                                        value={formData.password}
+                                        onChange={(e) => setFormData({...formData, password: e.target.value})}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-1 uppercase tracking-tight text-[10px]">Role</label>
+                                    <select 
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
+                                        value={formData.role}
+                                        onChange={(e) => setFormData({...formData, role: e.target.value})}
+                                    >
+                                        <option value="hospital">Hospital</option>
+                                        <option value="lab">Blood Bank / Lab</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-1 uppercase tracking-tight text-[10px]">License Number</label>
+                                    <input 
+                                        type="text"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
+                                        value={formData.licenseNumber}
+                                        onChange={(e) => setFormData({...formData, licenseNumber: e.target.value})}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-1 uppercase tracking-tight text-[10px]">Phone Number</label>
+                                    <input 
+                                        type="text"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
+                                        value={formData.phone}
+                                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                        required
+                                    />
+                                </div>
+                                <div className="col-span-2 grid grid-cols-4 gap-3">
+                                    <div className="col-span-2">
+                                        <label className="block text-sm font-bold text-gray-700 mb-1 uppercase tracking-tight text-[10px]">Street</label>
+                                        <input 
+                                            type="text"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
+                                            value={formData.address.street}
+                                            onChange={(e) => setFormData({...formData, address: {...formData.address, street: e.target.value}})}
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 mb-1 uppercase tracking-tight text-[10px]">City</label>
+                                        <input 
+                                            type="text"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
+                                            value={formData.address.city}
+                                            onChange={(e) => setFormData({...formData, address: {...formData.address, city: e.target.value}})}
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 mb-1 uppercase tracking-tight text-[10px]">Zip</label>
+                                        <input 
+                                            type="text"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
+                                            value={formData.address.zip}
+                                            onChange={(e) => setFormData({...formData, address: {...formData.address, zip: e.target.value}})}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="pt-4 flex gap-3">
+                                <button 
+                                    type="button"
+                                    onClick={() => setIsAddModalOpen(false)}
+                                    className="flex-1 py-3 border border-gray-300 text-gray-600 rounded-xl font-bold hover:bg-gray-50 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    type="submit"
+                                    disabled={addLoading}
+                                    className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-red-100 transition-all"
+                                >
+                                    {addLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                                    Create Facility Account
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             )}
         </div>

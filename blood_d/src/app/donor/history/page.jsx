@@ -1,6 +1,55 @@
-import { History, Share2, Download, TrendingUp, Droplets, Heart } from "lucide-react";
+"use client";
+
+import { History, Share2, Download, TrendingUp, Droplets, Heart, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 export default function HistoryPage() {
+    const [donations, setDonations] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState({
+        totalDonations: 0,
+        totalUnits: 0,
+        livesImpacted: 0
+    });
+
+    useEffect(() => {
+        const fetchHistory = async () => {
+            try {
+                const response = await axios.get("/api/donations");
+                const fetchedDonations = response.data.donations || [];
+                setDonations(fetchedDonations);
+                
+                // Calculate stats
+                const totalDonations = fetchedDonations.length;
+                const totalUnits = fetchedDonations.reduce((acc, curr) => acc + (curr.units || 1), 0);
+                // Assumption: 1 unit impacts 3 lives
+                const livesImpacted = totalUnits * 3;
+
+                setStats({
+                    totalDonations,
+                    totalUnits,
+                    livesImpacted
+                });
+
+            } catch (error) {
+                console.error("Error fetching donation history:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchHistory();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <Loader2 className="w-8 h-8 animate-spin text-red-600" />
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-8">
             {/* Header */}
@@ -18,18 +67,9 @@ export default function HistoryPage() {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard title="Total Donations" value="1" icon={Droplets} color="red" />
-                <StatCard title="Units Donated" value="1" icon={TrendingUp} color="green" />
-                <StatCard title="Lives Impacted" value="3+" icon={Heart} color="blue" />
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
-                    <div>
-                        <span className="block text-gray-500 text-xs font-medium mb-1">Your Level</span>
-                        <h3 className="text-2xl font-black text-gray-900">Starter</h3>
-                    </div>
-                    <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                        <Heart className="w-5 h-5 fill-white" />
-                    </div>
-                </div>
+                <StatCard title="Total Donations" value={stats.totalDonations} icon={Droplets} color="red" />
+                <StatCard title="Units Donated" value={stats.totalUnits} icon={TrendingUp} color="green" />
+                <StatCard title="Lives Impacted" value={`${stats.livesImpacted}+`} icon={Heart} color="blue" />
             </div>
 
             {/* Filters */}
@@ -58,18 +98,29 @@ export default function HistoryPage() {
                 </div>
             </div>
 
-            <div className="text-sm text-gray-500 font-medium ml-1">Showing 1 donation</div>
+            <div className="text-sm text-gray-500 font-medium ml-1">Showing {donations.length} donation{donations.length !== 1 && 's'}</div>
 
             {/* Donation List */}
             <div className="space-y-4">
-                <DonationCard
-                    date="Thu, 27 Nov, 2025"
-                    location="Mumbai, Maharashtra"
-                    type="A+ Donation"
-                    status="Completed"
-                    tag="Recent"
-                    units="1"
-                />
+                {donations.length > 0 ? (
+                    donations.map((donation) => (
+                        <DonationCard
+                            key={donation._id}
+                            date={new Date(donation.date).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                            location={donation.location || donation.facilityId?.name || "Unknown Location"}
+                            type={`${donation.type} Donation`}
+                            status={donation.status}
+                            tag={Date.parse(donation.date) > Date.now() - 2592000000 ? "Recent" : null} // Recent if < 30 days
+                            units={donation.units}
+                        />
+                    ))
+                ) : (
+                     <div className="text-center py-12 bg-white rounded-2xl border border-gray-100 border-dashed">
+                        <Droplets className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                        <h3 className="text-lg font-medium text-gray-900">No donations yet</h3>
+                        <p className="text-gray-500 text-sm">Your donation journey begins with a single step.</p>
+                    </div>
+                )}
             </div>
         </div>
     );

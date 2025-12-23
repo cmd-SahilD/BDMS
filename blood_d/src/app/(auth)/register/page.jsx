@@ -13,7 +13,10 @@ export default function Register() {
     confirmPassword: '',
     role: 'donor', // Default role
     bloodType: '',
+    weight: '', // Added weight
+    age: '', // Added age
     facilityName: '', // For Hospital/Lab
+    licenseNumber: '', // For Hospital/Lab
     licenseNumber: '', // For Hospital/Lab
     address: '', // Common
     phone: '', // Common
@@ -43,10 +46,15 @@ export default function Register() {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.name.trim()) {
+    const nameTrim = formData.name.trim();
+    if (!nameTrim) {
       newErrors.name = 'Full name is required';
-    } else if (formData.name.trim().length < 3) {
+    } else if (nameTrim.length < 3) {
       newErrors.name = 'Name must be at least 3 characters';
+    } else if (!/^[A-Z]/.test(nameTrim)) {
+      newErrors.name = 'Name must start with a capital letter';
+    } else if (nameTrim.split(/\s+/).filter(word => word.length > 0).length < 2) {
+      newErrors.name = 'Please provide your full name (First and Last name)';
     }
 
     if (!formData.email.trim()) {
@@ -70,6 +78,12 @@ export default function Register() {
     if (formData.role === 'donor') {
       if (!formData.bloodType) {
         newErrors.bloodType = 'Please select your blood type';
+      }
+      if (!formData.weight || isNaN(formData.weight) || Number(formData.weight) < 45) {
+         newErrors.weight = 'Weight must be at least 45kg';
+      }
+      if (!formData.age || isNaN(formData.age) || Number(formData.age) < 18) {
+         newErrors.age = 'You must be at least 18 years old';
       }
     } else {
       // Validation for Hospital/Lab
@@ -119,6 +133,8 @@ export default function Register() {
 
       if (formData.role === 'donor') {
         payload.bloodType = formData.bloodType;
+        payload.weight = formData.weight;
+        payload.age = formData.age;
       } else {
         payload.facilityName = formData.facilityName;
         payload.licenseNumber = formData.licenseNumber;
@@ -169,7 +185,7 @@ export default function Register() {
                     onChange={handleChange}
                     className="hidden"
                   />
-                  {r}
+                  {r === 'lab' ? 'Blood Bank' : r}
                 </label>
               ))}
             </div>
@@ -249,6 +265,7 @@ export default function Register() {
           </div>
 
           {formData.role === 'donor' && (
+            <>
             <div className="mb-5">
               <label htmlFor="bloodType" className="block text-gray-700 font-medium mb-2">
                 Blood Type
@@ -272,13 +289,46 @@ export default function Register() {
               </select>
               {errors.bloodType && <p className="text-red-500 text-sm mt-1">{errors.bloodType}</p>}
             </div>
+            
+            <div className="mb-5">
+              <label htmlFor="weight" className="block text-gray-700 font-medium mb-2">
+                Weight (kg)
+              </label>
+              <input
+                id="weight"
+                name="weight"
+                type="number"
+                value={formData.weight}
+                onChange={handleChange}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.weight ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-400'}`}
+                placeholder="Enter your weight"
+              />
+              {errors.weight && <p className="text-red-500 text-sm mt-1">{errors.weight}</p>}
+            </div>
+
+            <div className="mb-5">
+              <label htmlFor="age" className="block text-gray-700 font-medium mb-2">
+                Age
+              </label>
+              <input
+                id="age"
+                name="age"
+                type="number"
+                value={formData.age}
+                onChange={handleChange}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.age ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-400'}`}
+                placeholder="Enter your age"
+              />
+              {errors.age && <p className="text-red-500 text-sm mt-1">{errors.age}</p>}
+            </div>
+            </>
           )}
 
           {formData.role !== 'donor' && (
             <>
               <div className="mb-5">
                 <label htmlFor="facilityName" className="block text-gray-700 font-medium mb-2">
-                  Facility Name
+                  {formData.role === 'lab' ? 'Blood Bank Name' : 'Hospital Name'}
                 </label>
                 <input
                   id="facilityName"
@@ -287,14 +337,14 @@ export default function Register() {
                   value={formData.facilityName}
                   onChange={handleChange}
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.facilityName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-400'}`}
-                  placeholder="Enter facility name"
+                  placeholder={formData.role === 'lab' ? "Enter blood bank name" : "Enter hospital name"}
                 />
                 {errors.facilityName && <p className="text-red-500 text-sm mt-1">{errors.facilityName}</p>}
               </div>
 
               <div className="mb-5">
                 <label htmlFor="licenseNumber" className="block text-gray-700 font-medium mb-2">
-                  License Number
+                  {formData.role === 'lab' ? 'Blood Bank License Number' : 'Hospital License Number'}
                 </label>
                 <input
                   id="licenseNumber"

@@ -15,9 +15,9 @@ export async function middleware(request) {
         return NextResponse.next();
     }
 
-    // Check for protected routes (e.g. starting with /lab or /admin)
+    // Check for protected routes (e.g. starting with /blood-bank or /admin)
     // You can adjust this logic based on your exact route structure
-    if (path.startsWith("/lab") || path.startsWith("/admin")) {
+    if (path.startsWith("/blood-bank") || path.startsWith("/admin")) {
         const token = request.cookies.get("token")?.value;
 
         if (!token) {

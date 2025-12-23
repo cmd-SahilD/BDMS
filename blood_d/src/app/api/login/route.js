@@ -66,6 +66,8 @@ export async function POST(req) {
         email: user.email,
         role: user.role,
         bloodType: user.bloodType,
+        weight: user.weight,
+        age: user.age,
       }
     }, { status: 200 });
 

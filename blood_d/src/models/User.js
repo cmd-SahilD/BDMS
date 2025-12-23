@@ -46,6 +46,12 @@ const UserSchema = new mongoose.Schema(
     lastDonationDate: {
       type: Date,
     },
+    weight: {
+      type: Number,
+    },
+    age: {
+      type: Number,
+    },
     // Hospital/Lab specific
     facilityName: {
       type: String,

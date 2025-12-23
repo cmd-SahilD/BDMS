@@ -1,4 +1,5 @@
-import { Beaker, Users, Droplets, Activity, Calendar, Clock, Lock, ArrowRight } from "lucide-react";
+import { Beaker, Users, Droplets, Activity, Calendar, Clock, Lock, ArrowRight, History } from "lucide-react";
+import Link from "next/link";
 
 export default function LabDashboard() {
     return (
@@ -6,9 +7,9 @@ export default function LabDashboard() {
             <div>
                 <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
                     <svg className="w-6 h-6 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 2h14" /><path d="M5 22h14" /><path d="M12 2v20" /><path d="M16 10H8" /></svg>
-                    Blood Lab Dashboard
+                    Blood Bank Dashboard
                 </h1>
-                <p className="text-gray-500 text-sm mt-1">Comprehensive overview of your blood laboratory operations</p>
+                <p className="text-gray-500 text-sm mt-1">Comprehensive overview of your blood bank operations</p>
             </div>
 
             {/* Welcome Card */}
@@ -16,7 +17,7 @@ export default function LabDashboard() {
                 <div className="flex flex-col gap-1">
                     <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide flex items-center gap-2">
                         <svg className="w-4 h-4 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 21h18" /><path d="M5 21V7l8-4 8 4v14" /><path d="M17 21v-8.28A2 2 0 0 0 15.28 11h-2.56A2 2 0 0 0 11 12.72V21" /></svg>
-                        Laboratory Overview
+                        Blood Bank Overview
                     </h3>
                     <div className="flex flex-wrap gap-6 mt-2">
                         <div className="flex items-center gap-2">
@@ -68,6 +69,41 @@ export default function LabDashboard() {
                 <StatCard title="Total Donors" value="0" icon={Users} color="green" />
                 <StatCard title="Blood Units" value="724" sub="0 critical" icon={Droplets} color="red" />
                 <StatCard title="Active Camps" value="2" icon={Activity} color="purple" />
+            </div>
+
+            {/* Management Actions */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-start gap-6 hover:shadow-md transition-shadow group">
+                    <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center text-red-600 transition-colors group-hover:bg-red-600 group-hover:text-white">
+                        <History className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-900 mb-2 font-display">Donation History</h2>
+                        <p className="text-gray-500 text-sm leading-relaxed">View all donation records, analytics, and reports</p>
+                    </div>
+                    <Link 
+                        href="/blood-bank/donations"
+                        className="w-full py-3.5 bg-red-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-700 transition-all shadow-lg shadow-red-100 mt-2"
+                    >
+                        Manage <ArrowRight className="w-4 h-4" />
+                    </Link>
+                </div>
+
+                <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-start gap-6 hover:shadow-md transition-shadow group">
+                    <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center text-red-600 transition-colors group-hover:bg-red-600 group-hover:text-white">
+                        <Calendar className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-900 mb-2 font-display">Blood Camps</h2>
+                        <p className="text-gray-500 text-sm leading-relaxed">Monitor and manage upcoming blood donation camps</p>
+                    </div>
+                    <Link 
+                        href="/blood-bank/camps"
+                        className="w-full py-3.5 bg-red-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-700 transition-all shadow-lg shadow-red-100 mt-2"
+                    >
+                        View Camps <ArrowRight className="w-4 h-4" />
+                    </Link>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
