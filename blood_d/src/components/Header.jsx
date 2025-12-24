@@ -7,9 +7,7 @@ export default function Header() {
             <div className="container mx-auto px-4 md:px-6 h-20 flex items-center justify-between">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white font-bold">
-                        <Plus size={20} strokeWidth={4} />
-                    </div>
+                    <img src="/205916.png" alt="Logo" className="w-10 h-10 object-contain" />
                     <span className="text-xl font-bold text-red-700">
                         Blood Donation System
                     </span>

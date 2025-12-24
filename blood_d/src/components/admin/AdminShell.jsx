@@ -35,9 +35,7 @@ export default function AdminShell({ children, user }) {
             {/* Sidebar */}
             <aside className="w-64 bg-white border-r border-gray-100 flex flex-col fixed h-full z-10">
                 <div className="h-16 flex items-center gap-2 px-6 border-b border-gray-50">
-                    <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center text-red-600 font-bold">
-                        <Building2 className="w-5 h-5" />
-                    </div>
+                    <img src="/205916.png" alt="Logo" className="w-8 h-8 object-contain" />
                     <div>
                         <span className="text-sm font-bold text-gray-900 block leading-none">BBMS Admin</span>
                         <span className="text-[10px] text-gray-400 font-medium">System Administration</span>

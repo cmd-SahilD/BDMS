@@ -3,6 +3,14 @@ import { headers } from "next/headers";
 import fs from "fs";
 import path from "path";
 
+export const metadata = {
+  title: "Blood Donation System",
+  description: "A comprehensive management system for blood donation and bank operations.",
+  icons: {
+    icon: "/icon.png",
+  },
+};
+
 export default async function RootLayout({ children }) {
   // #region agent log
   try {
