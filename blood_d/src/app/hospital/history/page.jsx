@@ -62,7 +62,7 @@ export default function HistoryPage() {
                     <table className="w-full text-sm text-left">
                         <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-100">
                             <tr>
-                                <th className="px-6 py-4 font-semibold">Blood Lab</th>
+                                <th className="px-6 py-4 font-semibold">Blood Bank</th>
                                 <th className="px-6 py-4 font-semibold">Blood Type</th>
                                 <th className="px-6 py-4 font-semibold">Units</th>
                                 <th className="px-6 py-4 font-semibold">Status</th>

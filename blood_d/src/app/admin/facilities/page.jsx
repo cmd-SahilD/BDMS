@@ -87,7 +87,7 @@ export default function FacilitiesPage() {
 
         const matchesType = filterType === 'All Types' ||
             (filterType === 'Hospital' && f.role === 'hospital') ||
-            (filterType === 'Blood Lab' && f.role === 'lab');
+            (filterType === 'Blood Bank' && f.role === 'blood-bank');
 
         const matchesStatus = filterStatus === 'All Status' ||
             (filterStatus === 'Approved' && f.isVerified) ||
@@ -114,7 +114,7 @@ export default function FacilitiesPage() {
                         </div>
                         <h1 className="text-2xl font-bold text-gray-900">Medical Facilities</h1>
                     </div>
-                    <p className="text-gray-500 text-sm ml-11">Manage and view all registered hospitals and blood laboratories</p>
+                    <p className="text-gray-500 text-sm ml-11">Manage and view all registered hospitals and blood banks</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <button
@@ -169,7 +169,7 @@ export default function FacilitiesPage() {
                     className="px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 outline-none">
                     <option>All Types</option>
                     <option>Hospital</option>
-                    <option>Blood Lab</option>
+                    <option>Blood Bank</option>
                 </select>
                 <select
                     value={filterStatus}
@@ -252,7 +252,7 @@ export default function FacilitiesPage() {
                                         onChange={(e) => setFormData({...formData, role: e.target.value})}
                                     >
                                         <option value="hospital">Hospital</option>
-                                        <option value="lab">Blood Bank / Lab</option>
+                                        <option value="blood-bank">Blood Bank</option>
                                     </select>
                                 </div>
                                 <div>
@@ -366,7 +366,7 @@ function FacilityCard({ data, onUpdateStatus }) {
                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold text-white capitalize
                         ${role === 'hospital' ? 'bg-blue-500' : 'bg-purple-500'}`}>
                         {role === 'hospital' ? <Building2 className="w-3 h-3 mr-1" /> : null}
-                        {role === 'lab' ? 'Blood Lab' : role}
+                        {role === 'blood-bank' ? 'Blood Bank' : role}
                     </span>
                 </div>
             </div>

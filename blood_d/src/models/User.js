@@ -24,9 +24,16 @@ const UserSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["admin", "donor", "hospital", "lab"],
+      enum: ["admin", "donor", "hospital", "blood-bank", "lab"],
       default: "donor",
       required: true,
+    },
+    isTwoFactorEnabled: {
+      type: Boolean,
+      default: false
+    },
+    twoFactorSecret: {
+      type: String
     },
     // Common fields
     phone: {

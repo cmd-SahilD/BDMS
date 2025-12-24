@@ -104,11 +104,11 @@ export default function HospitalDashboard() {
 
                     <div className="space-y-6">
                         <ActivityItem action="Stock Update" detail="Requested 10 units of A+ from pokemon center" date="11/27/2025" />
-                        <ActivityItem action="Stock Update" detail="Received 10 units of A+ from blood lab" date="11/27/2025" />
+                        <ActivityItem action="Stock Update" detail="Received 10 units of A+ from blood bank" date="11/27/2025" />
                         <ActivityItem action="Stock Update" detail="Requested 5 units of A+ from pokemon center" date="11/27/2025" />
-                        <ActivityItem action="Stock Update" detail="Received 5 units of A+ from blood lab" date="11/27/2025" />
+                        <ActivityItem action="Stock Update" detail="Received 5 units of A+ from blood bank" date="11/27/2025" />
                         <ActivityItem action="Stock Update" detail="Requested 1 units of A+ from pokemon center" date="11/27/2025" />
-                        <ActivityItem action="Stock Update" detail="Received 1 units of A+ from blood lab" date="11/27/2025" />
+                        <ActivityItem action="Stock Update" detail="Received 1 units of A+ from blood bank" date="11/27/2025" />
                         <ActivityItem action="Stock Update" detail="Requested 1 units of B+ from pokemon center" date="11/29/2025" />
                     </div>
                 </div>

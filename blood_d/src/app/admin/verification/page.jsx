@@ -184,7 +184,7 @@ export default function VerificationPage() {
                                             </>
                                         )}
 
-                                        {(selectedUser.role === 'hospital' || selectedUser.role === 'lab') && (
+                                        {(selectedUser.role === 'hospital' || selectedUser.role === 'blood-bank') && (
                                             <DetailItem icon={ShieldAlert} label="License Number" value={selectedUser.licenseNumber || 'N/A'} />
                                         )}
                                     </div>

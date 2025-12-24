@@ -60,7 +60,7 @@ export async function POST(request) {
 
     if (!user || user.role === "donor") { // Donors shouldn't self-report usually, but for dev maybe? keeping it strict for now
         // Actually, let's allow blood banks/hospitals to add records.
-        if (user.role !== "admin" && user.role !== "hospital" && user.role !== "blood-bank" && user.role !== "lab") { // 'lab' for legacy support
+        if (user.role !== "admin" && user.role !== "hospital" && user.role !== "blood-bank" && user.role !== "lab") {
              return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
     }

@@ -10,8 +10,8 @@ export async function POST(req) {
         const { facilityName, email, password, role, phone, licenseNumber, address } = await req.json();
 
         // Validate role is either hospital or lab
-        if (!["hospital", "lab"].includes(role)) {
-            return NextResponse.json({ error: "Invalid role. Must be hospital or lab." }, { status: 400 });
+        if (!["hospital", "blood-bank", "lab"].includes(role)) {
+            return NextResponse.json({ error: "Invalid role. Must be hospital, blood-bank, or lab." }, { status: 400 });
         }
 
         const existingUser = await User.findOne({ email });
@@ -50,7 +50,7 @@ export async function GET(req) {
         await connectToDatabase();
 
         // Fetch all Hospitals and Labs
-        const facilities = await User.find({ role: { $in: ["hospital", "lab"] } })
+        const facilities = await User.find({ role: { $in: ["hospital", "blood-bank", "lab"] } })
             .select("-password") // Exclude password
             .sort({ createdAt: -1 });
 

@@ -40,6 +40,7 @@ export default function LoginPage() {
                 case "hospital":
                     router.push("/hospital");
                     break;
+                case "blood-bank":
                 case "lab":
                     router.push("/blood-bank");
                     break;

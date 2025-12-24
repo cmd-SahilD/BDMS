@@ -9,7 +9,13 @@ export async function GET(req) {
         const role = searchParams.get("role");
 
         let query = {};
-        if (role) query.role = role;
+        if (role) {
+            if (role === 'blood-bank') {
+                query.role = { $in: ['blood-bank', 'lab'] };
+            } else {
+                query.role = role;
+            }
+        }
 
         // Fetch users, excluding sensitive data like password
         const users = await User.find(query).select("-password").sort({ name: 1 });

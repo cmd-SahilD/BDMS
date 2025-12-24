@@ -175,7 +175,7 @@ export default function Register() {
               I am a...
             </label>
             <div className="flex gap-4">
-              {['donor', 'hospital', 'lab'].map((r) => (
+              {['donor', 'hospital', 'blood-bank'].map((r) => (
                 <label key={r} className={`flex-1 text-center py-2 rounded-lg border cursor-pointer capitalize transition-colors ${formData.role === r ? 'bg-red-50 border-red-500 text-red-700 font-bold' : 'border-gray-200 hover:bg-gray-50'}`}>
                   <input
                     type="radio"
@@ -185,7 +185,7 @@ export default function Register() {
                     onChange={handleChange}
                     className="hidden"
                   />
-                  {r === 'lab' ? 'Blood Bank' : r}
+                  {r === 'blood-bank' ? 'Blood Bank' : r}
                 </label>
               ))}
             </div>
@@ -328,7 +328,7 @@ export default function Register() {
             <>
               <div className="mb-5">
                 <label htmlFor="facilityName" className="block text-gray-700 font-medium mb-2">
-                  {formData.role === 'lab' ? 'Blood Bank Name' : 'Hospital Name'}
+                  {formData.role === 'blood-bank' ? 'Blood Bank Name' : 'Hospital Name'}
                 </label>
                 <input
                   id="facilityName"
@@ -337,14 +337,14 @@ export default function Register() {
                   value={formData.facilityName}
                   onChange={handleChange}
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.facilityName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-400'}`}
-                  placeholder={formData.role === 'lab' ? "Enter blood bank name" : "Enter hospital name"}
+                  placeholder={formData.role === 'blood-bank' ? "Enter blood bank name" : "Enter hospital name"}
                 />
                 {errors.facilityName && <p className="text-red-500 text-sm mt-1">{errors.facilityName}</p>}
               </div>
 
               <div className="mb-5">
                 <label htmlFor="licenseNumber" className="block text-gray-700 font-medium mb-2">
-                  {formData.role === 'lab' ? 'Blood Bank License Number' : 'Hospital License Number'}
+                  {formData.role === 'blood-bank' ? 'Blood Bank License Number' : 'Hospital License Number'}
                 </label>
                 <input
                   id="licenseNumber"

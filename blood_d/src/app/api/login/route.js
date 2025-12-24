@@ -68,6 +68,10 @@ export async function POST(req) {
         bloodType: user.bloodType,
         weight: user.weight,
         age: user.age,
+        phone: user.phone,
+        address: user.address,
+        facilityName: user.facilityName,
+        licenseNumber: user.licenseNumber,
       }
     }, { status: 200 });
 

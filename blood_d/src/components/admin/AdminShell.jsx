@@ -162,14 +162,14 @@ export default function AdminShell({ children, user }) {
                                             <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                                         </div>
                                         <div className="p-1">
-                                            <button className="flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                                            <Link href="/admin/profile" className="flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
                                                 <User className="w-4 h-4" />
                                                 Profile
-                                            </button>
-                                            <button className="flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                                            </Link>
+                                            <Link href="/admin/settings" className="flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
                                                 <Settings className="w-4 h-4" />
                                                 Settings
-                                            </button>
+                                            </Link>
                                         </div>
                                         <div className="border-t border-gray-50 p-1 mt-1">
                                             <button

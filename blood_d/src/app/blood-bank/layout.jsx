@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { LayoutDashboard, Beaker, Users, Tent, FileText, UserCircle, LogOut, History } from "lucide-react";
 
-export default function LabLayout({ children }) {
+export default function BankLayout({ children }) {
     const pathname = usePathname();
     const [user, setUser] = useState(null);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -38,7 +38,7 @@ export default function LabLayout({ children }) {
                         title="Click to reload page"
                     >
                         <span className="text-sm font-bold text-gray-900 block leading-none">Blood Bank Center</span>
-                        <span className="text-[10px] text-gray-400 font-medium">Testing & Quality Control</span>
+                        <span className="text-[10px] text-gray-400 font-medium">Processing & Distribution</span>
                     </div>
                 </div>
 
@@ -80,7 +80,7 @@ export default function LabLayout({ children }) {
                                 </div>
                                 <div className="text-right hidden md:block">
                                     <span className="text-sm font-bold text-gray-900 block leading-none">{user?.name || 'Blood Bank Center'}</span>
-                                    <span className="text-xs text-gray-500">{user?.role === 'lab' ? 'Blood Bank' : 'Lab User'}</span>
+                                    <span className="text-xs text-gray-500">{user?.role === 'blood-bank' ? 'Blood Bank' : 'Staff User'}</span>
                                 </div>
                                 <svg className={`w-4 h-4 text-gray-400 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6" /></svg>
                             </button>

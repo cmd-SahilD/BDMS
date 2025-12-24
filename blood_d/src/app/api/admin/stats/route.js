@@ -39,7 +39,7 @@ export async function GET() {
         const totalDonors = await User.countDocuments({ role: "donor" });
 
         // 2. Count Facilities (Hospitals + Labs)
-        const totalFacilities = await User.countDocuments({ role: { $in: ["hospital", "lab"] } });
+        const totalFacilities = await User.countDocuments({ role: { $in: ["hospital", "blood-bank", "lab"] } });
 
         // 3. Total Blood Units (Sum of all units in Inventory)
         // using aggregate to sum
