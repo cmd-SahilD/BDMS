@@ -6,7 +6,7 @@ import User from "@/models/User";
 import AdminShell from "@/components/admin/AdminShell";
 
 export default async function AdminLayout({ children }) {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
     let user = null;

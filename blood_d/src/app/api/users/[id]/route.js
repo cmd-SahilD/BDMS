@@ -5,7 +5,7 @@ import User from "@/models/User";
 export async function PATCH(req, { params }) {
     try {
         await connectToDatabase();
-        const { id } = params;
+        const { id } = await params;
         const updates = await req.json();
 
         // Prevent updating sensitive fields if necessary

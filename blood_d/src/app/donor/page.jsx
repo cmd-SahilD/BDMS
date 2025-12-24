@@ -1,7 +1,8 @@
 "use client";
-import { Heart, Activity, Droplets, Trophy, Calendar, Download, Share2, UserPlus, Clock, Scale, CalendarCheck } from "lucide-react";
+import { Heart, Activity, Droplets, Trophy, Calendar, Download, Share2, UserPlus, Clock, Scale, CalendarCheck, Loader2 } from "lucide-react";
 import Link from 'next/link';
 import { useState, useEffect } from "react";
+import axios from "axios";
 
 export default function DonorDashboard() {
     const [user, setUser] = useState(null);

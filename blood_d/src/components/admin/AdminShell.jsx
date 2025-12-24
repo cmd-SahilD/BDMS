@@ -13,10 +13,9 @@ export default function AdminShell({ children, user }) {
 
     // Fetch notifications client-side (non-critical)
     useEffect(() => {
-        axios.get('/api/admin/facilities')
+        axios.get('/api/admin/pending')
             .then(res => {
-                const pending = res.data.filter(f => !f.isVerified).length;
-                setPendingCount(pending);
+                setPendingCount(res.data.length);
             })
             .catch(console.error);
     }, []);
@@ -107,8 +106,8 @@ export default function AdminShell({ children, user }) {
                                                             <ShieldCheck className="w-4 h-4" />
                                                         </div>
                                                         <div>
-                                                            <p className="text-xs font-bold text-gray-900">Pending Approvals</p>
-                                                            <p className="text-[10px] text-gray-500 mt-0.5">There are {pendingCount} facilities waiting for verification.</p>
+                                                            <p className="text-xs font-bold text-gray-900">Pending Registrations</p>
+                                                            <p className="text-[10px] text-gray-500 mt-0.5">There are {pendingCount} new accounts waiting for verification.</p>
                                                         </div>
                                                     </div>
                                                 </Link>

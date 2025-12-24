@@ -12,6 +12,14 @@ export default function DonorsPage() {
     const [selectedDonor, setSelectedDonor] = useState(null);
     const [donorHistory, setDonorHistory] = useState([]);
     const [historyLoading, setHistoryLoading] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingDonor, setEditingDonor] = useState(null);
+    const [editFormData, setEditFormData] = useState({
+        age: "",
+        weight: "",
+        bloodType: ""
+    });
+    const [updateLoading, setUpdateLoading] = useState(false);
     
     // Add Donation state
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);

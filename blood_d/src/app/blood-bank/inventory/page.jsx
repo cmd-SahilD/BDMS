@@ -68,15 +68,7 @@ export default function InventoryPage() {
                 <p className="text-gray-500 text-sm mt-1 ml-14">Manage your blood inventory and track stock levels</p>
             </div>
 
-            <div className="flex justify-end">
-                <button
-                    onClick={() => user && fetchInventory(user._id)}
-                    className="flex items-center gap-2 px-4 py-2 border border-red-200 text-red-600 rounded-lg text-sm font-bold bg-white hover:bg-red-50 transition-colors"
-                >
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" /><path d="M16 16.24V21h5" /></svg>
-                    Refresh Stock
-                </button>
-            </div>
+
 
             {/* Add Stock Form */}
             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">

@@ -5,6 +5,7 @@ import axios from "axios";
 import { Tent, Plus, Search, Calendar, MapPin, Users, Edit2, Trash2, Loader2, X, Clock, Info } from "lucide-react";
 
 export default function BBCampsPage() {
+
     const [camps, setCamps] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -294,6 +295,22 @@ export default function BBCampsPage() {
                     </div>
                 </div>
             )}
+        </div>
+    );
+}
+
+function StatCard({ value, label, border }) {
+    const borderColors = {
+        red: "border-l-4 border-l-red-500",
+        blue: "border-l-4 border-l-blue-500",
+        green: "border-l-4 border-l-green-500",
+        gray: "border-l-4 border-l-gray-300",
+    };
+
+    return (
+        <div className={`bg-white p-4 rounded-xl shadow-sm border border-gray-100 ${borderColors[border]}`}>
+            <h3 className="text-2xl font-bold text-gray-900">{value}</h3>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{label}</p>
         </div>
     );
 }

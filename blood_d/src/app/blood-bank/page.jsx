@@ -1,76 +1,9 @@
-import { Beaker, Users, Droplets, Activity, Calendar, Clock, Lock, ArrowRight, History } from "lucide-react";
+import { Users, Droplets, Activity, Calendar, Clock, Lock, ArrowRight, History } from "lucide-react";
 import Link from "next/link";
 
 export default function LabDashboard() {
     return (
         <div className="space-y-8">
-            <div>
-                <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                    <svg className="w-6 h-6 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 2h14" /><path d="M5 22h14" /><path d="M12 2v20" /><path d="M16 10H8" /></svg>
-                    Blood Bank Dashboard
-                </h1>
-                <p className="text-gray-500 text-sm mt-1">Comprehensive overview of your blood bank operations</p>
-            </div>
-
-            {/* Welcome Card */}
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                <div className="flex flex-col gap-1">
-                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide flex items-center gap-2">
-                        <svg className="w-4 h-4 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 21h18" /><path d="M5 21V7l8-4 8 4v14" /><path d="M17 21v-8.28A2 2 0 0 0 15.28 11h-2.56A2 2 0 0 0 11 12.72V21" /></svg>
-                        Blood Bank Overview
-                    </h3>
-                    <div className="flex flex-wrap gap-6 mt-2">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center text-red-600">
-                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
-                            </div>
-                            <div>
-                                <span className="text-[10px] text-gray-400 block uppercase">Email</span>
-                                <span className="text-sm font-bold text-gray-900">pokemon@gmail.com</span>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center text-red-600">
-                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
-                            </div>
-                            <div>
-                                <span className="text-[10px] text-gray-400 block uppercase">Phone</span>
-                                <span className="text-sm font-bold text-gray-900">6666666666</span>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center text-red-600">
-                                <Clock className="w-4 h-4" />
-                            </div>
-                            <div>
-                                <span className="text-[10px] text-gray-400 block uppercase">Operating Hours</span>
-                                <span className="text-sm font-bold text-gray-900">09:00 - 18:00</span>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center text-red-600">
-                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
-                            </div>
-                            <div>
-                                <span className="text-[10px] text-gray-400 block uppercase">Location</span>
-                                <span className="text-sm font-bold text-gray-900">Mumbai, Maharashtra</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full uppercase tracking-wide">
-                    Approved
-                </span>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <StatCard title="Total Camps" value="5" icon={Calendar} color="blue" />
-                <StatCard title="Total Donors" value="0" icon={Users} color="green" />
-                <StatCard title="Blood Units" value="724" sub="0 critical" icon={Droplets} color="red" />
-                <StatCard title="Active Camps" value="2" icon={Activity} color="purple" />
-            </div>
-
             {/* Management Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-start gap-6 hover:shadow-md transition-shadow group">
@@ -175,39 +108,7 @@ export default function LabDashboard() {
     );
 }
 
-function StatCard({ title, value, sub, icon: Icon, color }) {
-    const borders = {
-        blue: "border-l-4 border-l-blue-500",
-        green: "border-l-4 border-l-green-500",
-        red: "border-l-4 border-l-red-500",
-        purple: "border-l-4 border-l-purple-500",
-    }
-    const colors = {
-        blue: "text-blue-500",
-        green: "text-green-500",
-        red: "text-red-500",
-        purple: "text-purple-500",
-    }
-    const bgColors = {
-        blue: "bg-blue-100",
-        green: "bg-green-100",
-        red: "bg-red-100",
-        purple: "bg-purple-100",
-    }
 
-    return (
-        <div className={`bg-white p-6 rounded-2xl shadow-sm border border-gray-100 ${borders[color]} flex items-center justify-between`}>
-            <div>
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{title}</span>
-                <h3 className="text-3xl font-bold text-gray-900 mt-1">{value}</h3>
-                {sub && <span className="text-[10px] text-gray-400 font-medium">{sub}</span>}
-            </div>
-            <div className={`w-10 h-10 rounded-xl ${bgColors[color]} flex items-center justify-center ${colors[color]}`}>
-                <Icon className="w-5 h-5" />
-            </div>
-        </div>
-    )
-}
 
 function InventoryRow({ type, units }) {
     return (
