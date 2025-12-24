@@ -812,3 +812,4 @@
 {"sessionId":"debug-session","runId":"run1","hypothesisId":"H7","location":"layout.jsx:render","message":"Root layout render (fs)","data":{"host":"localhost:3000","path":"http://localhost:3000/blood-bank"},"timestamp":1766555523015}
 {"sessionId":"debug-session","runId":"run1","hypothesisId":"H7","location":"layout.jsx:render","message":"Root layout render (fs)","data":{"host":"localhost:3000","path":"http://localhost:3000/blood-bank"},"timestamp":1766555539010}
 {"sessionId":"debug-session","runId":"run1","hypothesisId":"H7","location":"layout.jsx:render","message":"Root layout render (fs)","data":{"host":"localhost:3000","path":"http://localhost:3000/blood-bank/inventory"},"timestamp":1766555603309}
+{"sessionId":"debug-session","runId":"run1","hypothesisId":"H7","location":"layout.jsx:render","message":"Root layout render (fs)","data":{"host":"localhost:3000","path":null},"timestamp":1766556879255}
