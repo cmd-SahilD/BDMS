@@ -1489,3 +1489,4 @@
 {"sessionId":"debug-session","runId":"run1","hypothesisId":"H7","location":"layout.jsx:render","message":"Root layout render (fs)","data":{"host":"localhost:3000","path":"http://localhost:3000/admin"},"timestamp":1766650651437}
 {"sessionId":"debug-session","runId":"run1","hypothesisId":"H7","location":"layout.jsx:render","message":"Root layout render (fs)","data":{"host":"localhost:3000","path":"http://localhost:3000/admin"},"timestamp":1766651226164}
 {"sessionId":"debug-session","runId":"run1","hypothesisId":"H7","location":"layout.jsx:render","message":"Root layout render (fs)","data":{"host":"localhost:3000","path":null},"timestamp":1766651237345}
+{"sessionId":"debug-session","runId":"run1","hypothesisId":"H7","location":"layout.jsx:render","message":"Root layout render (fs)","data":{"host":"localhost:3000","path":"http://localhost:3000/admin"},"timestamp":1766651446533}
