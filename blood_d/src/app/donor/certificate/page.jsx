@@ -50,7 +50,7 @@ export default function CertificatePage() {
             const yPos = (210 - imgHeight) / 2;
 
             pdf.addImage(imgData, 'PNG', 0, yPos > 0 ? yPos : 0, imgWidth, imgHeight);
-            pdf.save(`BloodConnect_Certificate_${mockData.name.replace(/\s+/g, '_')}.pdf`);
+            pdf.save(`LifeSaver_Certificate_${mockData.name.replace(/\s+/g, '_')}.pdf`);
         } catch (error) {
             console.error("PDF Generation failed", error);
             alert("Failed to generate PDF. Please try printing instead.");

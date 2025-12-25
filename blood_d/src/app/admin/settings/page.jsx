@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Lock, Shield, Bell, Eye, EyeOff, Save, AlertCircle, Smartphone, CheckCircle2 } from "lucide-react";
+import { Lock, Shield, Eye, EyeOff, Save, AlertCircle, Smartphone, CheckCircle2 } from "lucide-react";
 
 export default function AdminSettings() {
     const [showPassword, setShowPassword] = useState(false);
@@ -48,8 +48,6 @@ export default function AdminSettings() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="md:col-span-1 space-y-2">
                     <SidebarItem icon={Shield} label="Security" active />
-                    <SidebarItem icon={Bell} label="Notifications" />
-                    <SidebarItem icon={Lock} label="Privacy" />
                 </div>
 
                 <div className="md:col-span-2 space-y-8">

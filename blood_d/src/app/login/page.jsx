@@ -60,10 +60,10 @@ export default function LoginPage() {
                 <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-2 group">
                         <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white font-bold group-hover:bg-red-700 transition-colors">
-                            B
+                            L
                         </div>
                         <span className="text-xl font-bold text-gray-900">
-                            BloodConnect
+                            LifeSaver
                         </span>
                     </Link>
                     <Link href="/" className="text-sm text-gray-500 hover:text-red-600 flex items-center gap-1 transition-colors">
@@ -76,7 +76,7 @@ export default function LoginPage() {
             <main className="flex-1 flex items-center justify-center p-4">
                 <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 md:p-10 border border-gray-100">
                     <div className="text-center mb-8">
-                        <h1 className="text-2xl font-bold text-gray-900 mb-2">Login to Blood Bank</h1>
+                        <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome to LifeSaver</h1>
                         <p className="text-gray-500 text-sm">
                             Access your donor, hospital, or blood bank dashboard
                         </p>
@@ -150,7 +150,7 @@ export default function LoginPage() {
             </main>
 
             <footer className="py-6 text-center text-xs text-gray-400">
-                &copy; {new Date().getFullYear()} BloodConnect System. All rights reserved.
+                &copy; {new Date().getFullYear()} LifeSaver. All rights reserved.
             </footer>
         </div>
     );

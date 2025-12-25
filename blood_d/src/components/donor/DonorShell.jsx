@@ -22,16 +22,14 @@ export default function DonorShell({ children, user }) {
             {/* Sidebar */}
             <aside className="w-64 bg-white border-r border-gray-100 flex flex-col fixed h-full z-10">
                 <div className="h-16 flex items-center gap-2 px-6 border-b border-gray-50">
-                    <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white font-bold">
-                        B
-                    </div>
+                    <img src="/205916.png" alt="Logo" className="w-8 h-8 object-contain" />
                     <div 
                         className="cursor-pointer" 
                         onClick={() => window.location.reload()}
                         title="Click to reload page"
                     >
-                        <span className="text-sm font-bold text-gray-900 block leading-none">BloodConnect</span>
-                        <span className="text-[10px] text-gray-400 font-medium">Donor Portal</span>
+                        <span className="text-sm font-bold text-gray-900 block leading-none">LifeSaver</span>
+                        <span className="text-[10px] text-gray-400 font-medium">Blood Donation Management</span>
                     </div>
                 </div>
 
@@ -65,13 +63,13 @@ export default function DonorShell({ children, user }) {
                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                                 className="flex items-center gap-3 pl-6 border-l border-gray-100 outline-none">
                                 <div className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-sm">
-                                    {user?.name?.charAt(0) || 'S'}
+                                    {user?.name?.charAt(0) || 'D'}
                                 </div>
                                 <div className="hidden md:block text-left">
                                     <span className="text-sm font-bold text-gray-900 block leading-none">
-                                        {user?.name || 'Suraj'}
+                                        {user?.name || 'Donor'}
                                     </span>
-                                    <span className="text-xs text-gray-500">{user?.role || 'Donor'}</span>
+                                    <span className="text-xs text-gray-500 capitalize">{user?.role || 'Donor'}</span>
                                 </div>
                                 <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
                             </button>

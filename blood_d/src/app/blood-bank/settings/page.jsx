@@ -48,8 +48,6 @@ export default function BankSettings() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="md:col-span-1 space-y-2">
                     <SidebarItem icon={Shield} label="Security" active />
-                    <SidebarItem icon={Key} label="API Access" />
-                    <SidebarItem icon={Bell} label="Alerts" />
                 </div>
 
                 <div className="md:col-span-2 space-y-8">

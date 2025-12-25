@@ -1,11 +1,12 @@
 "use client";
+
 import Link from "next/link";
-import { LayoutDashboard, FileText, Droplets, User, History, LogOut, Bell, Building2, ChevronDown, Settings, Calendar, CheckCircle, AlertCircle, Clock } from "lucide-react";
-import { usePathname } from 'next/navigation';
+import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
+import { LayoutDashboard, Beaker, Users, Tent, FileText, UserCircle, LogOut, History, Bell, ChevronDown, Settings, Calendar, CheckCircle, AlertCircle, Clock } from "lucide-react";
 import axios from "axios";
 
-export default function HospitalShell({ children, user }) {
+export default function BloodBankShell({ children, user }) {
     const pathname = usePathname();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -26,13 +27,10 @@ export default function HospitalShell({ children, user }) {
         }
     };
 
-    const handleLogout = async () => {
-        try {
-            document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
-            window.location.href = "/login";
-        } catch (error) {
-            console.error("Logout failed", error);
-        }
+    const handleLogout = () => {
+        localStorage.removeItem("user");
+        document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
+        window.location.href = "/login";
     };
 
     const getNotificationIcon = (type) => {
@@ -74,24 +72,24 @@ export default function HospitalShell({ children, user }) {
                 </div>
 
                 <div className="p-4">
-                    <div className="text-xs font-semibold text-red-500 mb-4 px-2 uppercase tracking-wider">Hospital Portal</div>
+                    <div className="text-xs font-semibold text-red-500 mb-4 px-2 uppercase tracking-wider">Blood Bank Portal</div>
                     <nav className="space-y-1">
-                        <NavItem href="/hospital" icon={LayoutDashboard} label="Dashboard" active={pathname === '/hospital'} />
-                        <NavItem href="/hospital/requests" icon={FileText} label="Blood Requests" active={pathname === '/hospital/requests'} />
-                        <NavItem href="/hospital/inventory" icon={Droplets} label="Inventory" active={pathname === '/hospital/inventory'} />
-                        <NavItem href="/hospital/donors" icon={User} label="Donors" active={pathname === '/hospital/donors'} />
-                        <NavItem href="/hospital/history" icon={History} label="History" active={pathname === '/hospital/history'} />
+                        <NavItem href="/blood-bank" icon={LayoutDashboard} label="Dashboard" active={pathname === "/blood-bank"} />
+                        <NavItem href="/blood-bank/inventory" icon={Beaker} label="Inventory" active={pathname.startsWith("/blood-bank/inventory")} />
+                        <NavItem href="/blood-bank/donors" icon={Users} label="Donors" active={pathname.startsWith("/blood-bank/donors")} />
+                        <NavItem href="/blood-bank/donations" icon={History} label="Donations" active={pathname.startsWith("/blood-bank/donations")} />
+                        <NavItem href="/blood-bank/camps" icon={Tent} label="Camps" active={pathname.startsWith("/blood-bank/camps")} />
+                        <NavItem href="/blood-bank/requests" icon={FileText} label="Requests" active={pathname.startsWith("/blood-bank/requests")} />
                     </nav>
                 </div>
-
             </aside>
 
             {/* Main Content */}
             <div className="flex-1 ml-64 flex flex-col">
                 {/* Top Header */}
-                <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-8 sticky top-0 z-50">
+                <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-8 sticky top-0 z-10">
                     <div className="flex items-center gap-4">
-                        <h2 className="text-lg font-bold text-gray-800">Hospital Portal</h2>
+                        <h2 className="text-lg font-bold text-gray-800">Blood Bank Portal</h2>
                     </div>
 
                     <div className="flex items-center gap-6">
@@ -115,11 +113,8 @@ export default function HospitalShell({ children, user }) {
                             {/* Notifications Dropdown */}
                             {isNotificationsOpen && (
                                 <>
-                                    <div
-                                        className="fixed inset-0 z-40"
-                                        onClick={() => setIsNotificationsOpen(false)}
-                                    ></div>
-                                    <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden">
+                                    <div className="fixed inset-0 z-10" onClick={() => setIsNotificationsOpen(false)}></div>
+                                    <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-gray-100 rounded-2xl shadow-xl z-20 overflow-hidden">
                                         <div className="px-4 py-3 border-b border-gray-50 flex items-center justify-between bg-gray-50">
                                             <h3 className="font-bold text-gray-900 text-sm">Notifications</h3>
                                             <span className="text-[10px] text-gray-500">{notifications.length} items</span>
@@ -133,9 +128,7 @@ export default function HospitalShell({ children, user }) {
                                                         className="px-4 py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors cursor-pointer"
                                                     >
                                                         <div className="flex items-start gap-3">
-                                                            <div className="mt-0.5">
-                                                                {getNotificationIcon(notif.type)}
-                                                            </div>
+                                                            <div className="mt-0.5">{getNotificationIcon(notif.type)}</div>
                                                             <div className="flex-1 min-w-0">
                                                                 <p className="text-xs text-gray-700 leading-relaxed">{notif.message}</p>
                                                                 <p className="text-[10px] text-gray-400 mt-1">{getTimeAgo(notif.time)}</p>
@@ -153,10 +146,7 @@ export default function HospitalShell({ children, user }) {
 
                                         {notifications.length > 0 && (
                                             <div className="px-4 py-2 border-t border-gray-50 bg-gray-50">
-                                                <button 
-                                                    onClick={fetchNotifications}
-                                                    className="w-full text-center text-xs text-red-600 font-bold hover:text-red-700"
-                                                >
+                                                <button onClick={fetchNotifications} className="w-full text-center text-xs text-red-600 font-bold hover:text-red-700">
                                                     Refresh
                                                 </button>
                                             </div>
@@ -166,51 +156,46 @@ export default function HospitalShell({ children, user }) {
                             )}
                         </div>
 
+                        {/* User Dropdown */}
                         <div className="relative">
                             <button
                                 onClick={() => {
                                     setIsProfileOpen(!isProfileOpen);
                                     setIsNotificationsOpen(false);
                                 }}
-                                className="flex items-center gap-3 pl-6 border-l border-gray-100 outline-none">
+                                className="flex items-center gap-3 pl-6 border-l border-gray-100 outline-none"
+                            >
                                 <div className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-sm">
-                                    {user?.name?.charAt(0) || 'H'}
+                                    {(user?.facilityName || user?.name)?.charAt(0) || 'B'}
                                 </div>
-                                <div className="hidden md:block text-left">
-                                    <span className="text-sm font-bold text-gray-900 block leading-none">
-                                        {user?.name || 'Hospital'}
-                                    </span>
-                                    <span className="text-xs text-gray-500 capitalize">{user?.role || 'Hospital'}</span>
+                                <div className="text-right hidden md:block">
+                                    <span className="text-sm font-bold text-gray-900 block leading-none">{user?.facilityName || user?.name || 'Blood Bank'}</span>
+                                    <span className="text-xs text-gray-500 capitalize">{user?.role === 'blood-bank' ? 'Blood Bank' : user?.role}</span>
                                 </div>
                                 <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
                             </button>
 
-                            {/* Profile Dropdown Menu */}
+                            {/* Dropdown Menu */}
                             {isProfileOpen && (
                                 <>
-                                    <div
-                                        className="fixed inset-0 z-40"
-                                        onClick={() => setIsProfileOpen(false)}
-                                    ></div>
-                                    <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-100 rounded-xl shadow-lg py-2 z-50">
+                                    <div className="fixed inset-0 z-10" onClick={() => setIsProfileOpen(false)}></div>
+                                    <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-100 rounded-xl shadow-lg py-2 z-20">
                                         <div className="px-4 py-3 border-b border-gray-50">
-                                            <p className="text-sm font-bold text-gray-900">{user?.name || 'Hospital User'}</p>
+                                            <p className="text-sm font-bold text-gray-900">{user?.facilityName || user?.name || 'Blood Bank User'}</p>
                                             <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                                         </div>
                                         <div className="p-1">
-                                            <Link href="/hospital/profile" className="flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                                                <User className="w-4 h-4" />
+                                            <Link href="/blood-bank/profile" className="flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors" onClick={() => setIsProfileOpen(false)}>
+                                                <UserCircle className="w-4 h-4" />
                                                 Profile
                                             </Link>
-                                            <Link href="/hospital/settings" className="flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                                            <Link href="/blood-bank/settings" className="flex items-center gap-3 w-full px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors" onClick={() => setIsProfileOpen(false)}>
                                                 <Settings className="w-4 h-4" />
                                                 Settings
                                             </Link>
                                         </div>
                                         <div className="border-t border-gray-50 p-1 mt-1">
-                                            <button
-                                                onClick={handleLogout}
-                                                className="flex items-center gap-3 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                            <button onClick={handleLogout} className="flex items-center gap-3 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                                                 <LogOut className="w-4 h-4" />
                                                 Logout
                                             </button>

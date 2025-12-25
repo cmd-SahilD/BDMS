@@ -1,7 +1,52 @@
-import { Users, Droplets, Activity, Calendar, Clock, Lock, ArrowRight, History } from "lucide-react";
+"use client";
+import { Users, Droplets, Activity, Calendar, Clock, Lock, ArrowRight, History, RefreshCw } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 export default function LabDashboard() {
+    const [inventory, setInventory] = useState([]);
+    const [camps, setCamps] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const [inventoryRes, campsRes] = await Promise.all([
+                axios.get('/api/inventory'),
+                axios.get('/api/camps')
+            ]);
+            setInventory(inventoryRes.data || []);
+            setCamps(campsRes.data || []);
+        } catch (error) {
+            console.error("Error fetching dashboard data:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    // Get camp status based on date
+    const getCampStatus = (dateStr) => {
+        const campDate = new Date(dateStr);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        campDate.setHours(0, 0, 0, 0);
+        
+        if (campDate < today) return { status: "Completed", color: "green" };
+        if (campDate.getTime() === today.getTime()) return { status: "Ongoing", color: "gray" };
+        return { status: "Upcoming", color: "yellow" };
+    };
+
+    // Format date for display
+    const formatDate = (dateStr) => {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+    };
+
     return (
         <div className="space-y-8">
             {/* Management Actions */}
@@ -42,31 +87,62 @@ export default function LabDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Blood Inventory Levels */}
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                    <h3 className="font-bold text-gray-800 mb-6 flex items-center gap-2">
-                        <Droplets className="w-5 h-5 text-gray-400" />
-                        Blood Inventory
-                    </h3>
-                    <p className="text-xs text-gray-500 mb-6 -mt-4">Current blood stock levels</p>
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                                <Droplets className="w-5 h-5 text-gray-400" />
+                                Blood Inventory
+                            </h3>
+                            <p className="text-xs text-gray-500 mt-1">Current blood stock levels</p>
+                        </div>
+                        <button onClick={fetchData} className="p-2 hover:bg-gray-50 rounded-lg transition-colors">
+                            <RefreshCw className={`w-4 h-4 text-gray-400 ${loading ? 'animate-spin' : ''}`} />
+                        </button>
+                    </div>
                     <div className="space-y-4">
-                        <InventoryRow type="A+" units="109" />
-                        <InventoryRow type="A-" units="104" />
-                        <InventoryRow type="O+" units="10" />
-                        <InventoryRow type="O-" units="501" />
+                        {loading ? (
+                            <div className="text-center py-8 text-gray-400 text-sm">Loading...</div>
+                        ) : inventory.length > 0 ? (
+                            inventory.slice(0, 6).map((item, index) => (
+                                <InventoryRow key={item._id || index} type={item.bloodType} units={item.units || item.quantity || 0} />
+                            ))
+                        ) : (
+                            <div className="text-center py-8 text-gray-400 text-sm">No inventory data</div>
+                        )}
                     </div>
                 </div>
 
                 {/* Recent Camps */}
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                    <h3 className="font-bold text-gray-800 mb-6 flex items-center gap-2">
-                        <Calendar className="w-5 h-5 text-gray-400" />
-                        Recent Blood Donation Camps
-                    </h3>
-                    <p className="text-xs text-gray-500 mb-6 -mt-4">Latest organized camps</p>
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                                <Calendar className="w-5 h-5 text-gray-400" />
+                                Recent Blood Donation Camps
+                            </h3>
+                            <p className="text-xs text-gray-500 mt-1">Latest organized camps</p>
+                        </div>
+                    </div>
                     <div className="space-y-4">
-                        <CampRow name="NMMC" date="11/30/2025" status="Ongoing" donors="50" color="gray" />
-                        <CampRow name="hello" date="11/26/2025" status="Completed" donors="50" color="green" />
-                        <CampRow name="pppppp" date="11/15/2025" status="Ongoing" donors="50" color="gray" />
-                        <CampRow name="pokpo" date="11/14/2025" status="Upcoming" donors="5" color="yellow" />
+                        {loading ? (
+                            <div className="text-center py-8 text-gray-400 text-sm">Loading...</div>
+                        ) : camps.length > 0 ? (
+                            camps.slice(0, 4).map((camp, index) => {
+                                const { status, color } = getCampStatus(camp.date);
+                                return (
+                                    <CampRow 
+                                        key={camp._id || index} 
+                                        name={camp.name || camp.title} 
+                                        date={formatDate(camp.date)} 
+                                        status={status} 
+                                        donors={camp.donors || camp.targetDonors || 0} 
+                                        color={color} 
+                                    />
+                                );
+                            })
+                        ) : (
+                            <div className="text-center py-8 text-gray-400 text-sm">No camps data</div>
+                        )}
                     </div>
                 </div>
             </div>

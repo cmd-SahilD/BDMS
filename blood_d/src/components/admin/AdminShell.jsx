@@ -37,8 +37,8 @@ export default function AdminShell({ children, user }) {
                 <div className="h-16 flex items-center gap-2 px-6 border-b border-gray-50">
                     <img src="/205916.png" alt="Logo" className="w-8 h-8 object-contain" />
                     <div>
-                        <span className="text-sm font-bold text-gray-900 block leading-none">BBMS Admin</span>
-                        <span className="text-[10px] text-gray-400 font-medium">System Administration</span>
+                        <span className="text-sm font-bold text-gray-900 block leading-none">LifeSaver</span>
+                        <span className="text-[10px] text-gray-400 font-medium">Blood Donation Management</span>
                     </div>
                 </div>
 

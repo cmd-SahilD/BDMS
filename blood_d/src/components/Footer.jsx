@@ -13,7 +13,7 @@ export default function Footer() {
                                 B
                             </div>
                             <span className="text-xl font-bold text-white">
-                                BloodConnect
+                                LifeSaver
                             </span>
                         </div>
                         <p className="text-sm leading-relaxed mb-6 text-gray-400">
@@ -80,7 +80,7 @@ export default function Footer() {
                 </div>
 
                 <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
-                    <p>&copy; {new Date().getFullYear()} BloodConnect. All rights reserved.</p>
+                    <p>&copy; {new Date().getFullYear()} LifeSaver. All rights reserved.</p>
                     <div className="flex gap-6">
                         <Link href="#" className="hover:text-white">Privacy</Link>
                         <Link href="#" className="hover:text-white">Terms</Link>

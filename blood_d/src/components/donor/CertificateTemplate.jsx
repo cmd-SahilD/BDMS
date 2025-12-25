@@ -19,7 +19,7 @@ export default function CertificateTemplate({ name, date, role = "Blood Donor" }
                     </div>
                 </div>
                 <div className="text-right">
-                    <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: '#dc2626' }}>BloodConnect Initiative</h2>
+                    <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: '#dc2626' }}>LifeSaver Initiative</h2>
                     <p className="text-[10px]" style={{ color: '#6b7280' }}>Official Donation Record</p>
                 </div>
             </div>

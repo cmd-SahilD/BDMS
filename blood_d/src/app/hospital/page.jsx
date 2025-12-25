@@ -1,48 +1,117 @@
 import { Droplets, Activity, AlertTriangle, Clock, TrendingUp, CheckCircle2 } from "lucide-react";
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
+import connectToDatabase from "@/lib/db";
+import User from "@/models/User";
+import Inventory from "@/models/Inventory";
+import Request from "@/models/Request";
 
-export default function HospitalDashboard() {
+export default async function HospitalDashboard() {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+
+    let user = null;
+    let inventory = [];
+    let requests = [];
+    let stats = {
+        totalUnits: 0,
+        bloodTypes: 0,
+        lowStock: 0,
+        expiringSoon: 0,
+        pendingRequests: 0
+    };
+
+    if (token) {
+        try {
+            const secret = new TextEncoder().encode(process.env.JWT_SECRET || "default_secret_please_change");
+            const { payload } = await jwtVerify(token, secret);
+
+            await connectToDatabase();
+            user = await User.findById(payload.userId);
+            
+            if (user) {
+                // Fetch inventory
+                inventory = await Inventory.find({ facilityId: user._id });
+                
+                // Fetch recent requests
+                requests = await Request.find({ 
+                    $or: [
+                        { requesterId: user._id },
+                        { providerId: user._id }
+                    ]
+                })
+                .sort({ createdAt: -1 })
+                .limit(5)
+                .populate('requesterId', 'facilityName name')
+                .populate('providerId', 'facilityName name');
+
+                // Calculate stats
+                stats.totalUnits = inventory.reduce((acc, item) => acc + item.units, 0);
+                stats.bloodTypes = new Set(inventory.filter(i => i.units > 0).map(i => i.bloodType)).size;
+                stats.lowStock = inventory.filter(i => i.units < 10 && i.units > 0).length;
+                
+                const pending = await Request.countDocuments({ 
+                    requesterId: user._id, 
+                    status: "Pending" 
+                });
+                stats.pendingRequests = pending;
+            }
+        } catch (error) {
+            console.error("Dashboard Data Fetch Error:", error.message);
+        }
+    }
+
+    if (!user) {
+        return <div className="p-12 text-center text-gray-500 font-medium tracking-tight">Please login to view dashboard.</div>;
+    }
+
+    const formattedAddress = user.address ? (
+        typeof user.address === 'string' ? user.address : 
+        `${user.address.street || ''} ${user.address.city || ''} ${user.address.state || ''} ${user.address.zip || ''}`.trim()
+    ) : "No address provided";
+
     return (
-        <div className="space-y-8">
+        <div className="space-y-8 animate-in fade-in duration-500">
             <div className="flex justify-between items-start">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Hospital Dashboard</h1>
-                    <p className="text-gray-500 text-sm mt-1">Welcome back! Here's your hospital overview.</p>
+                    <p className="text-gray-500 text-sm mt-1">Welcome back, {user.name}! Here's your hospital overview.</p>
                 </div>
             </div>
 
             {/* Info Card */}
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex  items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center text-red-600">
-                        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 18h8" /><path d="M3 22h18" /><path d="M14 2 6 18" /><path d="M21 6h-5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h5" /></svg>
+            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-4 w-full">
+                    <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center text-red-600 shrink-0">
+                        <Building2Icon className="w-6 h-6" />
                     </div>
-                    <div>
-                        <h2 className="text-lg font-bold text-gray-900">Red Cross Hospital</h2>
-                        <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
-                            <span>redcross@gmail.com</span>
-                            <span>123 MG Road, Mumbai, Maharashtra - 400001</span>
-                            <span>6546546546</span>
-                            <span>Category: Private</span>
+                    <div className="min-w-0 flex-1">
+                        <h2 className="text-lg font-bold text-gray-900 truncate">{user.facilityName || user.name}</h2>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 mt-1">
+                            <span className="truncate">{user.email}</span>
+                            <span className="truncate">{formattedAddress}</span>
+                            <span>{user.phone || "No phone"}</span>
+                            <span className="px-2 py-0.5 bg-gray-100 rounded text-gray-600 font-medium">Category: Private</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="text-right">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-wide rounded-full mb-2">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        Approved
+                <div className="flex flex-col items-center md:items-end gap-2 shrink-0">
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold uppercase tracking-wide rounded-full ${user.isVerified ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
+                        {user.isVerified ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+                        {user.isVerified ? 'Approved' : 'Pending Verification'}
                     </span>
-                    <p className="text-[10px] text-gray-400">Last Login: 12/1/2025, 3:23:42 PM</p>
+                    <p className="text-[10px] text-gray-400">Last Login: {new Date().toLocaleDateString()}</p>
                 </div>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <StatCard value="67" label="Total Blood Units" icon={Droplets} color="blue" />
-                <StatCard value="2" label="Blood Types" icon={Activity} color="green" />
-                <StatCard value="0" label="Low Stock" icon={AlertTriangle} color="yellow" />
-                <StatCard value="0" label="Expiring Soon" icon={Clock} color="red" />
-                <StatCard value="0" label="Pending Requests" icon={TrendingUp} color="purple" />
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <StatCard value={stats.totalUnits} label="Total Blood Units" icon={Droplets} color="blue" />
+                <StatCard value={stats.bloodTypes} label="Blood Types" icon={Activity} color="green" />
+                <StatCard value={stats.lowStock} label="Low Stock" icon={AlertTriangle} color="yellow" />
+                <StatCard value={stats.expiringSoon} label="Expiring Soon" icon={Clock} color="red" />
+                <StatCard value={stats.pendingRequests} label="Pending Requests" icon={TrendingUp} color="purple" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -53,8 +122,15 @@ export default function HospitalDashboard() {
                         Blood Inventory
                     </h3>
                     <div className="space-y-4">
-                        <InventoryItem type="A+" units="16 units" status="Good" />
-                        <InventoryItem type="B+" units="51 units" status="Good" />
+                        {inventory.length > 0 ? (
+                            inventory.map((item) => (
+                                <InventoryItem key={item._id} type={item.bloodType} units={`${item.units} units`} status={item.status || "Good"} />
+                            ))
+                        ) : (
+                            <div className="text-center py-12 bg-gray-50 rounded-xl text-gray-400 text-sm border-2 border-dashed border-gray-100">
+                                No inventory records found
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -66,51 +142,28 @@ export default function HospitalDashboard() {
                     </h3>
 
                     <div className="space-y-4">
-                        <RequestItem type="B+" units="50 units" hospital="pokemon center" status="rejected" />
-                        <RequestItem type="B+" units="50 units" hospital="pokemon center" status="accepted" />
-                        <RequestItem type="B+" units="1 units" hospital="pokemon center" status="accepted" />
-                        <RequestItem type="A+" units="1 units" hospital="pokemon center" status="accepted" />
-                        <RequestItem type="A+" units="5 units" hospital="pokemon center" status="accepted" />
+                        {requests.length > 0 ? (
+                            requests.map((req) => (
+                                <RequestItem 
+                                    key={req._id} 
+                                    type={req.bloodType} 
+                                    units={`${req.units} units`} 
+                                    hospital={req.requesterId?._id.toString() === user._id.toString() ? (req.providerId?.facilityName || req.providerId?.name || "Provider") : (req.requesterId?.facilityName || req.requesterId?.name || "Requester")} 
+                                    status={req.status.toLowerCase()} 
+                                />
+                            ))
+                        ) : (
+                            <div className="text-center py-12 bg-gray-50 rounded-xl text-gray-400 text-sm border-2 border-dashed border-gray-100">
+                                No recent requests found
+                            </div>
+                        )}
                     </div>
 
-                    <button className="w-full text-center text-red-600 text-sm font-bold mt-4 hover:underline">
-                        View All 10 Requests
-                    </button>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Recent Logins */}
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                    <h3 className="font-bold text-gray-800 mb-6 flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-gray-400" />
-                        Recent Logins
-                    </h3>
-                    <div className="space-y-6">
-                        <LoginItem date="11/14/2025, 10:29:15 AM" />
-                        <LoginItem date="11/26/2025, 10:55:13 PM" />
-                        <LoginItem date="11/27/2025, 12:19:19 AM" />
-                        <LoginItem date="11/27/2025, 12:21:54 PM" />
-                        <LoginItem date="11/27/2025, 8:39:14 PM" />
-                    </div>
-                </div>
-
-                {/* Recent Activity */}
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                    <h3 className="font-bold text-gray-800 mb-6 flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-gray-400" />
-                        Recent Activity
-                    </h3>
-
-                    <div className="space-y-6">
-                        <ActivityItem action="Stock Update" detail="Requested 10 units of A+ from pokemon center" date="11/27/2025" />
-                        <ActivityItem action="Stock Update" detail="Received 10 units of A+ from blood bank" date="11/27/2025" />
-                        <ActivityItem action="Stock Update" detail="Requested 5 units of A+ from pokemon center" date="11/27/2025" />
-                        <ActivityItem action="Stock Update" detail="Received 5 units of A+ from blood bank" date="11/27/2025" />
-                        <ActivityItem action="Stock Update" detail="Requested 1 units of A+ from pokemon center" date="11/27/2025" />
-                        <ActivityItem action="Stock Update" detail="Received 1 units of A+ from blood bank" date="11/27/2025" />
-                        <ActivityItem action="Stock Update" detail="Requested 1 units of B+ from pokemon center" date="11/29/2025" />
-                    </div>
+                    {requests.length > 0 && (
+                        <button className="w-full text-center text-red-600 text-sm font-bold mt-6 hover:bg-red-50 py-2 rounded-xl transition-colors border border-transparent hover:border-red-100">
+                            View All Requests
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
@@ -118,45 +171,42 @@ export default function HospitalDashboard() {
 }
 
 function StatCard({ value, label, icon: Icon, color }) {
-    const borders = {
-        blue: "border-l-4 border-l-blue-500",
-        green: "border-l-4 border-l-green-500",
-        yellow: "border-l-4 border-l-yellow-500",
-        red: "border-l-4 border-l-red-500",
-        purple: "border-l-4 border-l-purple-500",
-    }
-    const icons = {
-        blue: "text-blue-500",
-        green: "text-green-500",
-        yellow: "text-yellow-500",
-        red: "text-red-500",
-        purple: "text-purple-500",
+    const accents = {
+        blue: "text-blue-500 bg-blue-50",
+        green: "text-green-500 bg-green-50",
+        yellow: "text-yellow-500 bg-yellow-50",
+        red: "text-red-500 bg-red-50",
+        purple: "text-purple-500 bg-purple-50",
     }
 
     return (
-        <div className={`bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4 ${borders[color]}`}>
-            <div className={`p-2 rounded-lg bg-gray-50 ${icons[color]}`}>
-                <Icon className="w-6 h-6" />
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4 hover:border-gray-200 transition-colors">
+            <div className={`p-2.5 rounded-xl ${accents[color]}`}>
+                <Icon className="w-5 h-5" />
             </div>
-            <div>
-                <h3 className="text-xl font-bold text-gray-900 leading-none mb-1">{value}</h3>
-                <span className="block text-gray-500 text-xs font-medium">{label}</span>
+            <div className="min-w-0">
+                <h3 className="text-lg font-bold text-gray-900 leading-none mb-1">{value}</h3>
+                <span className="block text-gray-500 text-[10px] font-bold uppercase tracking-wider truncate">{label}</span>
             </div>
         </div>
     )
 }
 
 function InventoryItem({ type, units, status }) {
+    const isRed = type.includes('A') || type.includes('O');
     return (
-        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+        <div className="flex items-center justify-between p-4 bg-gray-50/50 hover:bg-gray-50 rounded-xl border border-transparent hover:border-gray-100 transition-all">
             <div className="flex items-center gap-4">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${type === 'A+' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs ${isRed ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
                     {type}
                 </div>
-                <span className="font-bold text-gray-900 text-sm">{units}</span>
+                <div>
+                    <span className="font-bold text-gray-900 text-sm block leading-none mb-1">{units}</span>
+                    <span className="text-[10px] text-gray-400 font-medium">Available Stock</span>
+                </div>
             </div>
-            <div className="flex items-center gap-1 text-green-600 text-xs font-bold">
-                <CheckCircle2 className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-1.5 text-green-600 text-[10px] font-bold uppercase tracking-wider bg-green-50 px-2 py-1 rounded-lg">
+                <CheckCircle2 className="w-3 h-3" />
                 {status}
             </div>
         </div>
@@ -165,42 +215,49 @@ function InventoryItem({ type, units, status }) {
 
 function RequestItem({ type, units, hospital, status }) {
     const badges = {
-        rejected: "bg-red-100 text-red-600",
-        accepted: "bg-green-100 text-green-600",
+        pending: "bg-orange-100 text-orange-600 border-orange-200",
+        rejected: "bg-red-100 text-red-600 border-red-200",
+        accepted: "bg-green-100 text-green-600 border-green-200",
+        completed: "bg-blue-100 text-blue-600 border-blue-200",
     }
     return (
-        <div className="flex items-center justify-between p-3 border border-gray-100 rounded-xl">
-            <div>
-                <h5 className="font-bold text-gray-900 text-xs mb-1">{type}</h5>
-                <p className="text-[10px] text-gray-500">{units} • {hospital}</p>
+        <div className="flex items-center justify-between p-4 border border-gray-50 rounded-xl hover:bg-gray-50 transition-colors">
+            <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                    <h5 className="font-bold text-gray-900 text-sm">{type}</h5>
+                    <span className="text-[10px] text-gray-400">•</span>
+                    <span className="text-[10px] font-bold text-gray-600">{units}</span>
+                </div>
+                <p className="text-[10px] text-gray-500 truncate font-medium">{hospital}</p>
             </div>
-            <span className={`px-2 py-0.5 rounded text-[9px] uppercase font-bold tracking-wide ${badges[status]}`}>
+            <span className={`px-2.5 py-1 rounded-lg text-[9px] uppercase font-bold tracking-wider border shadow-sm ${badges[status] || "bg-gray-100 text-gray-600 border-gray-200"}`}>
                 {status}
             </span>
         </div>
     )
 }
 
-function LoginItem({ date }) {
+function Building2Icon(props) {
     return (
-        <div className="flex items-center justify-between p-3 border border-gray-100 rounded-xl hover:bg-gray-50">
-            <div>
-                <h5 className="font-bold text-gray-800 text-xs mb-1">Facilities Login</h5>
-                <p className="text-[10px] text-gray-500">{date}</p>
-            </div>
-            <CheckCircle2 className="w-4 h-4 text-green-500" />
-        </div>
-    )
-}
-
-function ActivityItem({ action, detail, date }) {
-    return (
-        <div className="flex items-start justify-between pb-4 border-b border-gray-50 last:border-0 last:pb-0">
-            <div>
-                <h5 className="font-bold text-gray-800 text-xs mb-1">{action}</h5>
-                <p className="text-[10px] text-gray-500">{detail}</p>
-            </div>
-            <span className="text-[10px] text-gray-400 font-mono whitespace-nowrap ml-4">{date}</span>
-        </div>
+        <svg
+            {...props}
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
+            <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
+            <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
+            <path d="M10 6h4" />
+            <path d="M10 10h4" />
+            <path d="M10 14h4" />
+            <path d="M10 18h4" />
+        </svg>
     )
 }
