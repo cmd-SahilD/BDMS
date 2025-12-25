@@ -1,61 +1,21 @@
 "use client";
 import Link from "next/link";
-import { LayoutDashboard, FileText, Droplets, User, History, LogOut, Bell, Building2, ChevronDown, Settings, Calendar, CheckCircle, AlertCircle, Clock } from "lucide-react";
+import { LayoutDashboard, FileText, Droplets, User, History, LogOut, Bell, ChevronDown, Settings, Calendar, CheckCircle, AlertCircle, Clock } from "lucide-react";
 import { usePathname } from 'next/navigation';
-import { useState, useEffect } from "react";
-import axios from "axios";
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useNotifications } from "@/hooks/useNotifications";
+import { getTimeAgo } from "@/lib/formatters";
+import NavItem from "@/components/shell/NavItem";
+import { getNotificationIcon } from "@/components/shell/NotificationIcon";
 
 export default function HospitalShell({ children, user }) {
     const pathname = usePathname();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-    const [notifications, setNotifications] = useState([]);
-    const [unreadCount, setUnreadCount] = useState(0);
-
-    useEffect(() => {
-        fetchNotifications();
-    }, []);
-
-    const fetchNotifications = async () => {
-        try {
-            const response = await axios.get('/api/notifications');
-            setNotifications(response.data.notifications || []);
-            setUnreadCount(response.data.unreadCount || 0);
-        } catch (error) {
-            console.error("Error fetching notifications:", error);
-        }
-    };
-
-    const handleLogout = async () => {
-        try {
-            document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
-            window.location.href = "/login";
-        } catch (error) {
-            console.error("Logout failed", error);
-        }
-    };
-
-    const getNotificationIcon = (type) => {
-        switch(type) {
-            case 'success': return <CheckCircle className="w-4 h-4 text-green-500" />;
-            case 'error': return <AlertCircle className="w-4 h-4 text-red-500" />;
-            case 'camp': return <Calendar className="w-4 h-4 text-purple-500" />;
-            default: return <Clock className="w-4 h-4 text-blue-500" />;
-        }
-    };
-
-    const getTimeAgo = (date) => {
-        const now = new Date();
-        const diff = now - new Date(date);
-        const minutes = Math.floor(diff / 60000);
-        const hours = Math.floor(diff / 3600000);
-        const days = Math.floor(diff / 86400000);
-
-        if (minutes < 1) return 'Just now';
-        if (minutes < 60) return `${minutes}m ago`;
-        if (hours < 24) return `${hours}h ago`;
-        return `${days}d ago`;
-    };
+    
+    const { logout } = useAuth();
+    const { notifications, unreadCount, refresh: refreshNotifications } = useNotifications();
 
     return (
         <div className="min-h-screen bg-gray-50 flex">
@@ -154,7 +114,7 @@ export default function HospitalShell({ children, user }) {
                                         {notifications.length > 0 && (
                                             <div className="px-4 py-2 border-t border-gray-50 bg-gray-50">
                                                 <button 
-                                                    onClick={fetchNotifications}
+                                                    onClick={refreshNotifications}
                                                     className="w-full text-center text-xs text-red-600 font-bold hover:text-red-700"
                                                 >
                                                     Refresh
@@ -209,7 +169,7 @@ export default function HospitalShell({ children, user }) {
                                         </div>
                                         <div className="border-t border-gray-50 p-1 mt-1">
                                             <button
-                                                onClick={handleLogout}
+                                                onClick={logout}
                                                 className="flex items-center gap-3 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                                                 <LogOut className="w-4 h-4" />
                                                 Logout
@@ -228,20 +188,5 @@ export default function HospitalShell({ children, user }) {
                 </main>
             </div>
         </div>
-    );
-}
-
-function NavItem({ href, icon: Icon, label, active }) {
-    return (
-        <Link
-            href={href}
-            className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all
-        ${active
-                    ? 'bg-red-600 text-white shadow-md shadow-red-200'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
-        >
-            <Icon className={`w-5 h-5 ${active ? 'text-white' : 'text-gray-400'}`} />
-            {label}
-        </Link>
     );
 }

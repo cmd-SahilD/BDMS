@@ -9,9 +9,8 @@ export default function Footer() {
                     {/* Brand */}
                     <div>
                         <div className="flex items-center gap-2 mb-6">
-                            <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white font-bold">
-                                B
-                            </div>
+                            <img src="/205916.png" alt="LifeSaver" className="h-8 w-8 object-contain" />
+
                             <span className="text-xl font-bold text-white">
                                 LifeSaver
                             </span>

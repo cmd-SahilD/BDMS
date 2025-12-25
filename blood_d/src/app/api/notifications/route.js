@@ -2,27 +2,24 @@ import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 import Request from "@/models/Request";
 import Camp from "@/models/Camp";
-import * as jose from "jose";
+import { getUserFromRequest } from "@/lib/auth";
 
 export async function GET(req) {
     try {
-        const token = req.cookies.get("token")?.value;
-        if (!token) {
+        const user = await getUserFromRequest(req);
+        if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const secret = new TextEncoder().encode(process.env.JWT_SECRET || "default_secret_please_change");
-        const { payload } = await jose.jwtVerify(token, secret);
-        
         await connectToDatabase();
 
         const notifications = [];
 
-        // Fetch recent blood requests for this hospital (pending ones)
+        // Fetch recent blood requests for this user (pending ones)
         const recentRequests = await Request.find({
             $or: [
-                { requesterId: payload.userId },
-                { providerId: payload.userId }
+                { requesterId: user.userId },
+                { providerId: user.userId }
             ],
             status: { $in: ["Pending", "Accepted", "Rejected"] }
         })
@@ -32,7 +29,7 @@ export async function GET(req) {
         .populate('providerId', 'facilityName name');
 
         recentRequests.forEach(req => {
-            const isRequester = req.requesterId?._id.toString() === payload.userId;
+            const isRequester = req.requesterId?._id.toString() === user.userId;
             let message = '';
             let type = 'request';
             

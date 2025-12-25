@@ -4,6 +4,8 @@ import { LayoutDashboard, ShieldCheck, Building2, Users, LogOut, Bell, ChevronDo
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useAuth } from "@/hooks/useAuth";
+import NavItem from "@/components/shell/NavItem";
 
 export default function AdminShell({ children, user }) {
     const pathname = usePathname();
@@ -11,7 +13,9 @@ export default function AdminShell({ children, user }) {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
-    // Fetch notifications client-side (non-critical)
+    const { logout } = useAuth();
+
+    // Fetch pending count client-side
     useEffect(() => {
         axios.get('/api/admin/pending')
             .then(res => {
@@ -19,16 +23,6 @@ export default function AdminShell({ children, user }) {
             })
             .catch(console.error);
     }, []);
-
-    const handleLogout = async () => {
-        try {
-            // Document cookie clearing as a fallback
-            document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
-            window.location.href = "/login";
-        } catch (error) {
-            console.error("Logout failed", error);
-        }
-    };
 
     return (
         <div className="min-h-screen bg-gray-50 flex">
@@ -173,7 +167,7 @@ export default function AdminShell({ children, user }) {
                                         </div>
                                         <div className="border-t border-gray-50 p-1 mt-1">
                                             <button
-                                                onClick={handleLogout}
+                                                onClick={logout}
                                                 className="flex items-center gap-3 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                                                 <LogOut className="w-4 h-4" />
                                                 Logout
@@ -192,27 +186,5 @@ export default function AdminShell({ children, user }) {
                 </main>
             </div>
         </div>
-    );
-}
-
-function NavItem({ href, icon: Icon, label, active, count }) {
-    return (
-        <Link
-            href={href}
-            className={`flex items-center justify-between px-4 py-3 text-sm font-medium rounded-xl transition-all
-        ${active
-                    ? 'bg-red-600 text-white shadow-md shadow-red-200'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
-        >
-            <div className="flex items-center gap-3">
-                <Icon className={`w-5 h-5 ${active ? 'text-white' : 'text-gray-400'}`} />
-                {label}
-            </div>
-            {count > 0 && (
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${active ? 'bg-red-500 text-white' : 'bg-red-100 text-red-600'}`}>
-                    {count}
-                </span>
-            )}
-        </Link>
     );
 }

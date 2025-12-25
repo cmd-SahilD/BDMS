@@ -59,9 +59,8 @@ export default function LoginPage() {
             <header className="bg-white border-b border-gray-100 py-4">
                 <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-2 group">
-                        <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white font-bold group-hover:bg-red-700 transition-colors">
-                            L
-                        </div>
+                        <img src="/205916.png" alt="LifeSaver" className="w-8 h-8 object-contain" />
+
                         <span className="text-xl font-bold text-gray-900">
                             LifeSaver
                         </span>
