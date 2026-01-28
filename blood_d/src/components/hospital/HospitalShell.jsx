@@ -13,9 +13,22 @@ export default function HospitalShell({ children, user }) {
     const pathname = usePathname();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-    
+
     const { logout } = useAuth();
-    const { notifications, unreadCount, refresh: refreshNotifications } = useNotifications();
+    const { notifications, unreadCount, refresh: refreshNotifications, markAsRead } = useNotifications();
+
+    // Mark notifications as read when dropdown is opened
+    const handleNotificationOpen = () => {
+        const wasOpening = !isNotificationsOpen;
+        setIsNotificationsOpen(!isNotificationsOpen);
+        setIsProfileOpen(false);
+
+        // If opening and there are unread notifications, mark them as read
+        if (wasOpening && notifications.length > 0) {
+            const notificationIds = notifications.map(n => n.id);
+            markAsRead(notificationIds);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 flex">
@@ -23,8 +36,8 @@ export default function HospitalShell({ children, user }) {
             <aside className="w-64 bg-white border-r border-gray-100 flex flex-col fixed h-full z-10">
                 <div className="h-16 flex items-center gap-2 px-6 border-b border-gray-50">
                     <img src="/205916.png" alt="Logo" className="w-8 h-8 object-contain" />
-                    <div 
-                        className="cursor-pointer" 
+                    <div
+                        className="cursor-pointer"
                         onClick={() => window.location.reload()}
                         title="Click to reload page"
                     >
@@ -57,11 +70,8 @@ export default function HospitalShell({ children, user }) {
                     <div className="flex items-center gap-6">
                         {/* Notification Bell */}
                         <div className="relative">
-                            <button 
-                                onClick={() => {
-                                    setIsNotificationsOpen(!isNotificationsOpen);
-                                    setIsProfileOpen(false);
-                                }}
+                            <button
+                                onClick={handleNotificationOpen}
                                 className="relative p-2 text-gray-400 hover:text-red-600 transition-colors"
                             >
                                 <Bell className="w-5 h-5" />
@@ -76,19 +86,19 @@ export default function HospitalShell({ children, user }) {
                             {isNotificationsOpen && (
                                 <>
                                     <div
-                                        className="fixed inset-0 z-40"
+                                        className="fixed inset-0 z-[100]"
                                         onClick={() => setIsNotificationsOpen(false)}
                                     ></div>
-                                    <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden">
+                                    <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-gray-100 rounded-2xl shadow-xl z-[101] overflow-hidden">
                                         <div className="px-4 py-3 border-b border-gray-50 flex items-center justify-between bg-gray-50">
                                             <h3 className="font-bold text-gray-900 text-sm">Notifications</h3>
                                             <span className="text-[10px] text-gray-500">{notifications.length} items</span>
                                         </div>
-                                        
+
                                         <div className="max-h-80 overflow-y-auto">
                                             {notifications.length > 0 ? (
                                                 notifications.map((notif, index) => (
-                                                    <div 
+                                                    <div
                                                         key={notif.id || index}
                                                         className="px-4 py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors cursor-pointer"
                                                     >
@@ -113,7 +123,7 @@ export default function HospitalShell({ children, user }) {
 
                                         {notifications.length > 0 && (
                                             <div className="px-4 py-2 border-t border-gray-50 bg-gray-50">
-                                                <button 
+                                                <button
                                                     onClick={refreshNotifications}
                                                     className="w-full text-center text-xs text-red-600 font-bold hover:text-red-700"
                                                 >

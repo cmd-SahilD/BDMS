@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
 
-export async function middleware(request) {
+export async function proxy(request) {
     // Get the path from the request URL
     const path = request.nextUrl.pathname;
 
@@ -31,7 +31,7 @@ export async function middleware(request) {
             // Token is valid
             return NextResponse.next();
         } catch (error) {
-            console.error("Middleware auth error:", error);
+            console.error("Proxy auth error:", error);
             // Token invalid or expired
             return NextResponse.redirect(new URL("/login", request.url));
         }
@@ -51,4 +51,3 @@ export const config = {
         '/((?!_next/static|_next/image|favicon.ico).*)',
     ],
 };
-

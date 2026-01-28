@@ -79,11 +79,15 @@ export default function Register() {
       if (!formData.bloodType) {
         newErrors.bloodType = 'Please select your blood type';
       }
-      if (!formData.weight || isNaN(formData.weight) || Number(formData.weight) < 45) {
-         newErrors.weight = 'Weight must be at least 45kg';
+      if (!formData.weight || isNaN(formData.weight) || Number(formData.weight) <= 0) {
+        newErrors.weight = 'Weight must be a positive number';
+      } else if (Number(formData.weight) < 45) {
+        newErrors.weight = 'Weight must be at least 45kg';
       }
-      if (!formData.age || isNaN(formData.age) || Number(formData.age) < 18) {
-         newErrors.age = 'You must be at least 18 years old';
+      if (!formData.age || isNaN(formData.age) || Number(formData.age) <= 0) {
+        newErrors.age = 'Age must be a positive number';
+      } else if (Number(formData.age) < 18) {
+        newErrors.age = 'You must be at least 18 years old';
       }
     } else {
       // Validation for Hospital/Lab
@@ -266,61 +270,63 @@ export default function Register() {
 
           {formData.role === 'donor' && (
             <>
-            <div className="mb-5">
-              <label htmlFor="bloodType" className="block text-gray-700 font-medium mb-2">
-                Blood Type
-              </label>
-              <select
-                id="bloodType"
-                name="bloodType"
-                value={formData.bloodType}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 appearance-none ${errors.bloodType ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-400'}`}
-              >
-                <option value="">Select your blood type</option>
-                <option value="A+">A+</option>
-                <option value="A-">A-</option>
-                <option value="B+">B+</option>
-                <option value="B-">B-</option>
-                <option value="AB+">AB+</option>
-                <option value="AB-">AB-</option>
-                <option value="O+">O+</option>
-                <option value="O-">O-</option>
-              </select>
-              {errors.bloodType && <p className="text-red-500 text-sm mt-1">{errors.bloodType}</p>}
-            </div>
-            
-            <div className="mb-5">
-              <label htmlFor="weight" className="block text-gray-700 font-medium mb-2">
-                Weight (kg)
-              </label>
-              <input
-                id="weight"
-                name="weight"
-                type="number"
-                value={formData.weight}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.weight ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-400'}`}
-                placeholder="Enter your weight"
-              />
-              {errors.weight && <p className="text-red-500 text-sm mt-1">{errors.weight}</p>}
-            </div>
+              <div className="mb-5">
+                <label htmlFor="bloodType" className="block text-gray-700 font-medium mb-2">
+                  Blood Type
+                </label>
+                <select
+                  id="bloodType"
+                  name="bloodType"
+                  value={formData.bloodType}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 appearance-none ${errors.bloodType ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-400'}`}
+                >
+                  <option value="">Select your blood type</option>
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                </select>
+                {errors.bloodType && <p className="text-red-500 text-sm mt-1">{errors.bloodType}</p>}
+              </div>
 
-            <div className="mb-5">
-              <label htmlFor="age" className="block text-gray-700 font-medium mb-2">
-                Age
-              </label>
-              <input
-                id="age"
-                name="age"
-                type="number"
-                value={formData.age}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.age ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-400'}`}
-                placeholder="Enter your age"
-              />
-              {errors.age && <p className="text-red-500 text-sm mt-1">{errors.age}</p>}
-            </div>
+              <div className="mb-5">
+                <label htmlFor="weight" className="block text-gray-700 font-medium mb-2">
+                  Weight (kg)
+                </label>
+                <input
+                  id="weight"
+                  name="weight"
+                  type="number"
+                  min="0"
+                  value={formData.weight}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.weight ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-400'}`}
+                  placeholder="Enter your weight"
+                />
+                {errors.weight && <p className="text-red-500 text-sm mt-1">{errors.weight}</p>}
+              </div>
+
+              <div className="mb-5">
+                <label htmlFor="age" className="block text-gray-700 font-medium mb-2">
+                  Age
+                </label>
+                <input
+                  id="age"
+                  name="age"
+                  type="number"
+                  min="0"
+                  value={formData.age}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.age ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-400'}`}
+                  placeholder="Enter your age"
+                />
+                {errors.age && <p className="text-red-500 text-sm mt-1">{errors.age}</p>}
+              </div>
             </>
           )}
 

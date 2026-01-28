@@ -8,6 +8,7 @@ export default function LabRequestsPage() {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState(null);
+    const [updatingRequestId, setUpdatingRequestId] = useState(null);
 
     useEffect(() => {
         const storedUser = JSON.parse(localStorage.getItem('user'));
@@ -32,16 +33,28 @@ export default function LabRequestsPage() {
     };
 
     const handleStatusUpdate = async (id, newStatus) => {
+        setUpdatingRequestId(id);
         try {
-            await axios.put('/api/requests', {
+            const response = await axios.put('/api/requests', {
                 id,
                 status: newStatus
             });
-            // Refresh requests or update local state
-            fetchRequests(user._id);
+
+            // Show success message for accepted requests
+            if (newStatus === 'Accepted') {
+                alert(response.data.message || 'Request accepted and inventory updated successfully!');
+            }
+
+            // Refresh requests
+            await fetchRequests(user._id);
         } catch (error) {
             console.error("Error updating status:", error);
-            alert("Failed to update status");
+
+            // Display specific error message from backend
+            const errorMessage = error.response?.data?.error || 'Failed to update status';
+            alert(errorMessage);
+        } finally {
+            setUpdatingRequestId(null);
         }
     };
 
@@ -98,6 +111,7 @@ export default function LabRequestsPage() {
                                         key={request._id}
                                         request={request}
                                         onStatusUpdate={handleStatusUpdate}
+                                        isUpdating={updatingRequestId === request._id}
                                     />
                                 ))
                             )}
@@ -123,7 +137,7 @@ function StatCard({ value, label, border }) {
     )
 }
 
-function RequestRow({ request, onStatusUpdate }) {
+function RequestRow({ request, onStatusUpdate, isUpdating }) {
     const { requesterId, bloodType, units, status, createdAt, processedDate } = request;
     const hospitalName = requesterId?.facilityName || requesterId?.name || 'Unknown Hospital';
     const location = requesterId?.address?.city || 'Unknown Location'; // Assuming city is populated
@@ -176,15 +190,17 @@ function RequestRow({ request, onStatusUpdate }) {
                     <div className="flex gap-2">
                         <button
                             onClick={() => onStatusUpdate(request._id, 'Accepted')}
-                            className="bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded-md text-xs font-bold transition-colors"
+                            disabled={isUpdating}
+                            className="bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded-md text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Accept
+                            {isUpdating ? 'Processing...' : 'Accept'}
                         </button>
                         <button
                             onClick={() => onStatusUpdate(request._id, 'Rejected')}
-                            className="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded-md text-xs font-bold transition-colors"
+                            disabled={isUpdating}
+                            className="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded-md text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Reject
+                            {isUpdating ? 'Processing...' : 'Reject'}
                         </button>
                     </div>
                 ) : (

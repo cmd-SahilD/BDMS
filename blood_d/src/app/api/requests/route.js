@@ -53,6 +53,64 @@ export async function PUT(req) {
         await connectToDatabase();
         const { id, status, processedDate } = await req.json();
 
+        // If accepting a request, we need to deduct from inventory
+        if (status === 'Accepted') {
+            // First, get the request details to know what to deduct
+            const requestToAccept = await Request.findById(id);
+
+            if (!requestToAccept) {
+                return NextResponse.json({ error: "Request not found" }, { status: 404 });
+            }
+
+            const { providerId, bloodType, units } = requestToAccept;
+
+            // Find inventory for this blood bank and blood type
+            const Inventory = (await import("@/models/Inventory")).default;
+            const inventoryItems = await Inventory.find({
+                facilityId: providerId,
+                bloodType: bloodType
+            });
+
+            if (inventoryItems.length === 0) {
+                return NextResponse.json({
+                    error: `No inventory found for blood type ${bloodType}`
+                }, { status: 400 });
+            }
+
+            // Calculate total available units
+            const totalAvailableUnits = inventoryItems.reduce((sum, item) => sum + item.units, 0);
+
+            if (totalAvailableUnits < units) {
+                return NextResponse.json({
+                    error: `Insufficient inventory. Required: ${units} units, Available: ${totalAvailableUnits} units of ${bloodType}`
+                }, { status: 400 });
+            }
+
+            // Deduct units from inventory (deduct from first item with enough units, or across multiple)
+            let unitsToDeduct = units;
+            for (const item of inventoryItems) {
+                if (unitsToDeduct <= 0) break;
+
+                const deductFromThis = Math.min(item.units, unitsToDeduct);
+                item.units -= deductFromThis;
+                unitsToDeduct -= deductFromThis;
+
+                // Update status based on remaining units
+                if (item.units === 0) {
+                    item.status = 'Critical';
+                } else if (item.units < 5) {
+                    item.status = 'Critical';
+                } else if (item.units < 10) {
+                    item.status = 'Low';
+                } else {
+                    item.status = 'Adequate';
+                }
+
+                await item.save();
+            }
+        }
+
+        // Update the request status
         const updatedRequest = await Request.findByIdAndUpdate(
             id,
             {
@@ -66,7 +124,12 @@ export async function PUT(req) {
             return NextResponse.json({ error: "Request not found" }, { status: 404 });
         }
 
-        return NextResponse.json({ message: "Request updated successfully", request: updatedRequest }, { status: 200 });
+        return NextResponse.json({
+            message: status === 'Accepted'
+                ? "Request accepted and inventory updated successfully"
+                : "Request updated successfully",
+            request: updatedRequest
+        }, { status: 200 });
     } catch (error) {
         console.error("Update request error:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

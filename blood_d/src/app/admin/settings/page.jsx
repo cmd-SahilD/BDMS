@@ -1,18 +1,62 @@
 "use client";
 import { useState } from "react";
 import { Lock, Shield, Eye, EyeOff, Save } from "lucide-react";
+import axios from "axios";
 
 export default function AdminSettings() {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [formData, setFormData] = useState({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: ""
+    });
+    const [message, setMessage] = useState({ type: "", text: "" });
 
-    const handlePasswordUpdate = (e) => {
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+        setMessage({ type: "", text: "" });
+    };
+
+    const handlePasswordUpdate = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setTimeout(() => {
-            alert("Admin password updated successfully!");
+        setMessage({ type: "", text: "" });
+
+        if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
+            setMessage({ type: "error", text: "Please fill in all fields" });
             setLoading(false);
-        }, 1000);
+            return;
+        }
+
+        if (formData.newPassword.length < 6) {
+            setMessage({ type: "error", text: "New password must be at least 6 characters" });
+            setLoading(false);
+            return;
+        }
+
+        if (formData.newPassword !== formData.confirmPassword) {
+            setMessage({ type: "error", text: "New passwords do not match" });
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const response = await axios.post("/api/users/change-password", {
+                currentPassword: formData.currentPassword,
+                newPassword: formData.newPassword
+            });
+            setMessage({ type: "success", text: response.data.message || "Password updated successfully!" });
+            setFormData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+        } catch (error) {
+            setMessage({
+                type: "error",
+                text: error.response?.data?.error || "Failed to update password"
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -39,14 +83,43 @@ export default function AdminSettings() {
                         </div>
 
                         <div className="p-8">
+                            {message.text && (
+                                <div className={`mb-4 p-4 rounded-xl text-sm font-medium ${message.type === "success"
+                                        ? "bg-green-50 text-green-700 border border-green-100"
+                                        : "bg-red-50 text-red-700 border border-red-100"
+                                    }`}>
+                                    {message.text}
+                                </div>
+                            )}
+
                             <form onSubmit={handlePasswordUpdate} className="space-y-6">
-                                <PasswordField label="Current Password" placeholder="••••••••" />
-                                <PasswordField label="New Password" placeholder="••••••••" show={showPassword} onToggle={() => setShowPassword(!showPassword)} />
-                                <PasswordField label="Confirm New Password" placeholder="••••••••" />
+                                <PasswordField
+                                    label="Current Password"
+                                    placeholder="••••••••"
+                                    name="currentPassword"
+                                    value={formData.currentPassword}
+                                    onChange={handleChange}
+                                />
+                                <PasswordField
+                                    label="New Password"
+                                    placeholder="••••••••"
+                                    name="newPassword"
+                                    value={formData.newPassword}
+                                    onChange={handleChange}
+                                    show={showPassword}
+                                    onToggle={() => setShowPassword(!showPassword)}
+                                />
+                                <PasswordField
+                                    label="Confirm New Password"
+                                    placeholder="••••••••"
+                                    name="confirmPassword"
+                                    value={formData.confirmPassword}
+                                    onChange={handleChange}
+                                />
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full py-4 bg-gray-900 text-white font-bold rounded-2xl hover:bg-black transition-all shadow-lg shadow-gray-200 flex items-center justify-center gap-2"
+                                    className="w-full py-4 bg-gray-900 text-white font-bold rounded-2xl hover:bg-black transition-all shadow-lg shadow-gray-200 flex items-center justify-center gap-2 disabled:opacity-50"
                                 >
                                     <Save className="w-4 h-4" />
                                     {loading ? 'Updating...' : 'Update Credentials'}
@@ -70,13 +143,16 @@ function SidebarItem({ icon: Icon, label, active }) {
     );
 }
 
-function PasswordField({ label, placeholder, show, onToggle }) {
+function PasswordField({ label, placeholder, show, onToggle, name, value, onChange }) {
     return (
         <div>
             <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">{label}</label>
             <div className="relative">
                 <input
                     type={show ? "text" : "password"}
+                    name={name}
+                    value={value}
+                    onChange={onChange}
                     placeholder={placeholder}
                     className="w-full px-5 py-4 rounded-2xl bg-gray-50 border border-gray-100 focus:bg-white focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 transition-all font-medium text-sm text-gray-900"
                 />
