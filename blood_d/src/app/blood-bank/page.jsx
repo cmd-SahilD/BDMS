@@ -1,23 +1,28 @@
 "use client";
-import { Users, Droplets, Activity, Calendar, Clock, Lock, ArrowRight, History, RefreshCw } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import axios from "axios";
+import { getCompatibleRecipients, BLOOD_COMPATIBILITY } from "@/lib/bloodMatching";
+import Skeleton, { StatsSkeleton } from "@/components/ui/Skeleton";
+import { History, ArrowRight, Calendar, Droplets, RefreshCw, Lock, Activity } from "lucide-react";
 
 export default function LabDashboard() {
     const [inventory, setInventory] = useState([]);
     const [camps, setCamps] = useState([]);
+    const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [inventoryRes, campsRes] = await Promise.all([
+            const [inventoryRes, campsRes, logsRes] = await Promise.all([
                 axios.get('/api/inventory'),
-                axios.get('/api/camps')
+                axios.get('/api/camps'),
+                axios.get('/api/logs')
             ]);
             setInventory(inventoryRes.data || []);
             setCamps(campsRes.data || []);
+            setLogs(logsRes.data || []);
         } catch (error) {
             console.error("Error fetching dashboard data:", error);
         } finally {
@@ -35,7 +40,7 @@ export default function LabDashboard() {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         campDate.setHours(0, 0, 0, 0);
-        
+
         if (campDate < today) return { status: "Completed", color: "green" };
         if (campDate.getTime() === today.getTime()) return { status: "Ongoing", color: "gray" };
         return { status: "Upcoming", color: "yellow" };
@@ -59,7 +64,7 @@ export default function LabDashboard() {
                         <h2 className="text-xl font-bold text-gray-900 mb-2 font-display">Donation History</h2>
                         <p className="text-gray-500 text-sm leading-relaxed">View all donation records, analytics, and reports</p>
                     </div>
-                    <Link 
+                    <Link
                         href="/blood-bank/donations"
                         className="w-full py-3.5 bg-red-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-700 transition-all shadow-lg shadow-red-100 mt-2"
                     >
@@ -75,7 +80,7 @@ export default function LabDashboard() {
                         <h2 className="text-xl font-bold text-gray-900 mb-2 font-display">Blood Camps</h2>
                         <p className="text-gray-500 text-sm leading-relaxed">Monitor and manage upcoming blood donation camps</p>
                     </div>
-                    <Link 
+                    <Link
                         href="/blood-bank/camps"
                         className="w-full py-3.5 bg-red-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-700 transition-all shadow-lg shadow-red-100 mt-2"
                     >
@@ -101,13 +106,15 @@ export default function LabDashboard() {
                     </div>
                     <div className="space-y-4">
                         {loading ? (
-                            <div className="text-center py-8 text-gray-400 text-sm">Loading...</div>
+                            <div className="space-y-3">
+                                {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-14 w-full rounded-xl" />)}
+                            </div>
                         ) : inventory.length > 0 ? (
-                            inventory.slice(0, 6).map((item, index) => (
+                            inventory.slice(0, 8).map((item, index) => (
                                 <InventoryRow key={item._id || index} type={item.bloodType} units={item.units || item.quantity || 0} />
                             ))
                         ) : (
-                            <div className="text-center py-8 text-gray-400 text-sm">No inventory data</div>
+                            <div className="text-center py-8 text-gray-400 text-sm italic">No inventory data available</div>
                         )}
                     </div>
                 </div>
@@ -130,13 +137,13 @@ export default function LabDashboard() {
                             camps.slice(0, 4).map((camp, index) => {
                                 const { status, color } = getCampStatus(camp.date);
                                 return (
-                                    <CampRow 
-                                        key={camp._id || index} 
-                                        name={camp.name || camp.title} 
-                                        date={formatDate(camp.date)} 
-                                        status={status} 
-                                        donors={camp.donors || camp.targetDonors || 0} 
-                                        color={color} 
+                                    <CampRow
+                                        key={camp._id || index}
+                                        name={camp.name || camp.title}
+                                        date={formatDate(camp.date)}
+                                        status={status}
+                                        donors={camp.donors || camp.targetDonors || 0}
+                                        color={color}
                                     />
                                 );
                             })
@@ -156,11 +163,21 @@ export default function LabDashboard() {
                 <p className="text-xs text-gray-500 mb-6 -mt-4">Recent login activity</p>
 
                 <div className="space-y-3">
-                    <LogEntry title="System Access" detail="Facility logged in successfully" date="11/13/2025, 3:48:28 PM" />
-                    <LogEntry title="System Access" detail="Facility logged in successfully" date="11/14/2025, 10:22:53 AM" />
-                    <LogEntry title="System Access" detail="Facility logged in successfully" date="11/14/2025, 10:25:54 AM" />
-                    <LogEntry title="System Access" detail="Facility logged in successfully" date="11/14/2025, 11:34:58 AM" />
-                    <LogEntry title="System Access" detail="Facility logged in successfully" date="11/14/2025, 11:50:21 AM" />
+                    {loading ? (
+                        <div className="text-center py-4 text-gray-400 text-xs">Loading history...</div>
+                    ) : logs.filter(l => l.action === 'System Access').length > 0 ? (
+                        logs.filter(l => l.action === 'System Access').slice(0, 5).map((log, i) => (
+                            <LogEntry
+                                key={log._id || i}
+                                title={log.action}
+                                detail={log.details}
+                                date={new Date(log.createdAt).toLocaleString()}
+                                icon="blue"
+                            />
+                        ))
+                    ) : (
+                        <div className="text-center py-4 text-gray-400 text-xs italic">No access history found</div>
+                    )}
                 </div>
             </div>
 
@@ -173,11 +190,21 @@ export default function LabDashboard() {
                 <p className="text-xs text-gray-500 mb-6 -mt-4">All laboratory activities</p>
 
                 <div className="space-y-3">
-                    <LogEntry title="Login" detail="Facility logged in successfully" date="11/13/2025, 3:46:28 PM" icon="blue" />
-                    <LogEntry title="Login" detail="Facility logged in successfully" date="11/14/2025, 10:22:53 AM" icon="blue" />
-                    <LogEntry title="Stock Update" detail="Added 100 units of A+" date="11/14/2025, 10:23:38 AM" icon="green" />
-                    <LogEntry title="Stock Update" detail="Removed 100 units of A+" date="11/14/2025, 10:23:47 AM" icon="green" />
-                    <LogEntry title="Login" detail="Facility logged in successfully" date="11/14/2025, 10:25:54 AM" icon="blue" />
+                    {loading ? (
+                        <div className="text-center py-4 text-gray-400 text-xs">Loading activity...</div>
+                    ) : logs.length > 0 ? (
+                        logs.slice(0, 5).map((log, i) => (
+                            <LogEntry
+                                key={log._id || i}
+                                title={log.action}
+                                detail={log.details}
+                                date={new Date(log.createdAt).toLocaleString()}
+                                icon={log.icon || "blue"}
+                            />
+                        ))
+                    ) : (
+                        <div className="text-center py-4 text-gray-400 text-xs italic">No recent activity found</div>
+                    )}
                 </div>
             </div>
         </div>
@@ -187,15 +214,30 @@ export default function LabDashboard() {
 
 
 function InventoryRow({ type, units }) {
+    const recipients = useMemo(() => getCompatibleRecipients(type), [type]);
+
     return (
-        <div className="flex items-center justify-between p-3 bg-gray-50/50 rounded-xl hover:bg-gray-50">
+        <div className="group relative flex items-center justify-between p-3.5 bg-gray-50/50 rounded-xl hover:bg-white hover:shadow-sm border border-transparent hover:border-gray-100 transition-all">
             <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${type.includes('O') ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'}`}>
-                    <Droplets className="w-3.5 h-3.5 mr-1" />
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shadow-sm
+                    ${type === 'O-' ? 'bg-red-600 text-white' :
+                        type.includes('+') ? 'bg-blue-50 text-blue-600 border border-blue-100' :
+                            'bg-purple-50 text-purple-600 border border-purple-100'}`}>
                     {type}
                 </div>
+                <div>
+                    <span className="font-bold text-gray-900 block leading-tight">{units} units</span>
+                    <p className="text-[10px] text-gray-500 mt-0.5">
+                        Can give to: <span className="text-gray-700 font-medium">{recipients.join(', ')}</span>
+                    </p>
+                </div>
             </div>
-            <span className="font-bold text-gray-900 text-sm">{units} units</span>
+
+            {/* Compatibility info on hover or secondary label */}
+            <div className={`px-2 py-0.5 rounded text-[10px] font-bold 
+                ${units < 10 ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-gray-100 text-gray-500'}`}>
+                {units < 10 ? 'LOW STOCK' : 'ADEQUATE'}
+            </div>
         </div>
     )
 }

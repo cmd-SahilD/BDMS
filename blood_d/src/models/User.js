@@ -58,6 +58,7 @@ const UserSchema = new mongoose.Schema(
     },
     age: {
       type: Number,
+      max: [60, "Age cannot be more than 60"],
     },
     // Hospital/Lab specific
     facilityName: {
@@ -69,6 +70,13 @@ const UserSchema = new mongoose.Schema(
     isVerified: {
       type: Boolean,
       default: false,
+    },
+    // Password reset fields
+    resetPasswordToken: {
+      type: String,
+    },
+    resetPasswordExpiry: {
+      type: Date,
     }
   },
   { timestamps: true }

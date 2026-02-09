@@ -3,6 +3,7 @@ import connectToDatabase from "@/lib/db";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
 import { getUserFromRequest } from "@/lib/auth";
+import { validatePassword } from "@/lib/validation";
 
 export async function POST(req) {
     try {
@@ -24,9 +25,10 @@ export async function POST(req) {
             );
         }
 
-        if (newPassword.length < 6) {
+        const passwordCheck = validatePassword(newPassword);
+        if (!passwordCheck.isValid) {
             return NextResponse.json(
-                { error: "New password must be at least 6 characters" },
+                { error: passwordCheck.error },
                 { status: 400 }
             );
         }

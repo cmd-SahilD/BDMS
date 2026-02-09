@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { Eye, EyeOff } from 'lucide-react';
+import PasswordStrength from '@/components/ui/PasswordStrength';
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -243,28 +245,38 @@ export default function Register() {
               />
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-600"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 hover:text-gray-800"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? "Hide" : "Show"}
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
             {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+            <PasswordStrength password={formData.password} />
           </div>
 
           <div className="mb-5">
             <label htmlFor="confirmPassword" className="block text-gray-700 font-medium mb-2">
               Confirm Password
             </label>
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type={showConfirmPassword ? "text" : "password"}
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.confirmPassword ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-400'}`}
-              placeholder="Confirm your password"
-            />
+            <div className="relative">
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.confirmPassword ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-400'}`}
+                placeholder="Confirm your password"
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 hover:text-gray-800"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
             {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
           </div>
 
@@ -330,73 +342,39 @@ export default function Register() {
             </>
           )}
 
-          {formData.role !== 'donor' && (
-            <>
-              <div className="mb-5">
-                <label htmlFor="facilityName" className="block text-gray-700 font-medium mb-2">
-                  {formData.role === 'blood-bank' ? 'Blood Bank Name' : 'Hospital Name'}
-                </label>
-                <input
-                  id="facilityName"
-                  name="facilityName"
-                  type="text"
-                  value={formData.facilityName}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.facilityName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-400'}`}
-                  placeholder={formData.role === 'blood-bank' ? "Enter blood bank name" : "Enter hospital name"}
-                />
-                {errors.facilityName && <p className="text-red-500 text-sm mt-1">{errors.facilityName}</p>}
-              </div>
 
-              <div className="mb-5">
-                <label htmlFor="licenseNumber" className="block text-gray-700 font-medium mb-2">
-                  {formData.role === 'blood-bank' ? 'Blood Bank License Number' : 'Hospital License Number'}
-                </label>
-                <input
-                  id="licenseNumber"
-                  name="licenseNumber"
-                  type="text"
-                  value={formData.licenseNumber}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.licenseNumber ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-400'}`}
-                  placeholder="Enter license number"
-                />
-                {errors.licenseNumber && <p className="text-red-500 text-sm mt-1">{errors.licenseNumber}</p>}
-              </div>
 
-              <div className="mb-5">
-                <label htmlFor="phone" className="block text-gray-700 font-medium mb-2">
-                  Phone Number
-                </label>
-                <input
-                  id="phone"
-                  name="phone"
-                  type="text"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.phone ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-400'}`}
-                  placeholder="Enter phone number"
-                />
-                {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
-              </div>
+          <div className="mb-5">
+            <label htmlFor="phone" className="block text-gray-700 font-medium mb-2">
+              Phone Number
+            </label>
+            <input
+              id="phone"
+              name="phone"
+              type="text"
+              value={formData.phone}
+              onChange={handleChange}
+              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.phone ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-400'}`}
+              placeholder="Enter phone number"
+            />
+            {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+          </div>
 
-              <div className="mb-5">
-                <label htmlFor="address" className="block text-gray-700 font-medium mb-2">
-                  Address
-                </label>
-                <textarea
-                  id="address"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  rows="2"
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.address ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-400'}`}
-                  placeholder="Enter facility address"
-                />
-                {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
-              </div>
-            </>
-          )}
+          <div className="mb-5">
+            <label htmlFor="address" className="block text-gray-700 font-medium mb-2">
+              Address
+            </label>
+            <textarea
+              id="address"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              rows="2"
+              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${errors.address ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-400'}`}
+              placeholder="Enter full address"
+            />
+            {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
+          </div>
 
           <div className="mb-6">
             <div className="flex items-start">

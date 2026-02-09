@@ -28,8 +28,8 @@ export default function BloodBankProfile() {
                     contactPerson: userData.name || "",
                     email: userData.email || "",
                     phone: userData.phone || "",
-                    address: typeof userData.address === 'string' ? userData.address : 
-                             userData.address ? `${userData.address.street || ''} ${userData.address.city || ''}` : ""
+                    address: typeof userData.address === 'string' ? userData.address :
+                        userData.address ? `${userData.address.street || ''} ${userData.address.city || ''}` : ""
                 });
             } catch (error) {
                 console.error("Error fetching profile:", error);
@@ -42,11 +42,16 @@ export default function BloodBankProfile() {
 
     const handleSave = async () => {
         setLoading(true);
-        setTimeout(() => {
-            setIsEditing(false);
-            setLoading(false);
+        try {
+            await axios.put("/api/users/profile", formData);
             alert("Blood Bank profile updated successfully!");
-        }, 800);
+            setIsEditing(false);
+        } catch (error) {
+            console.error("Error updating profile:", error);
+            alert(error.response?.data?.error || "Failed to update profile");
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (loading && !user) return <div className="p-12 text-center text-gray-500 font-medium animate-pulse">Loading blood bank profile...</div>;
@@ -57,12 +62,12 @@ export default function BloodBankProfile() {
             {/* Header Card */}
             <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 overflow-hidden relative">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-red-50 rounded-bl-[100px] -mr-8 -mt-8 opacity-50"></div>
-                
+
                 <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
                     <div className="w-32 h-32 rounded-3xl bg-red-600 text-white flex items-center justify-center text-5xl font-bold shadow-xl shadow-red-100 uppercase">
                         {formData.facilityName?.charAt(0) || formData.contactPerson?.charAt(0) || 'B'}
                     </div>
-                    
+
                     <div className="text-center md:text-left space-y-2 flex-1">
                         <div className="flex items-center justify-center md:justify-start gap-3">
                             <h1 className="text-3xl font-bold text-gray-900">{formData.facilityName || "Blood Bank Facility"}</h1>
@@ -79,7 +84,7 @@ export default function BloodBankProfile() {
                         </div>
                     </div>
 
-                    <button 
+                    <button
                         onClick={() => isEditing ? handleSave() : setIsEditing(true)}
                         disabled={loading}
                         className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm transition-all ${isEditing ? 'bg-black text-white' : 'bg-red-50 text-red-600 hover:bg-red-100'}`}
@@ -97,11 +102,11 @@ export default function BloodBankProfile() {
                         <Building2 className="w-4 h-4" />
                         Blood Bank Information
                     </h3>
-                    
+
                     <div className="space-y-4">
-                        <ProfileInput label="Blood Bank Name" value={formData.facilityName} isEditing={isEditing} onChange={(v) => setFormData({...formData, facilityName: v})} />
-                        <ProfileInput label="Contact Person" value={formData.contactPerson} isEditing={isEditing} onChange={(v) => setFormData({...formData, contactPerson: v})} />
-                        <ProfileInput label="License Number" value={formData.licenseNumber} isEditing={isEditing} onChange={(v) => setFormData({...formData, licenseNumber: v})} />
+                        <ProfileInput label="Blood Bank Name" value={formData.facilityName} isEditing={isEditing} onChange={(v) => setFormData({ ...formData, facilityName: v })} />
+                        <ProfileInput label="Contact Person" value={formData.contactPerson} isEditing={isEditing} onChange={(v) => setFormData({ ...formData, contactPerson: v })} />
+                        <ProfileInput label="License Number" value={formData.licenseNumber} isEditing={isEditing} onChange={(v) => setFormData({ ...formData, licenseNumber: v })} />
                     </div>
                 </div>
 
@@ -111,17 +116,17 @@ export default function BloodBankProfile() {
                         <Phone className="w-4 h-4" />
                         Communication
                     </h3>
-                    
+
                     <div className="space-y-4">
                         <ProfileInput label="Contact Email" value={formData.email} isEditing={false} />
-                        <ProfileInput label="Phone Number" value={formData.phone} isEditing={isEditing} onChange={(v) => setFormData({...formData, phone: v})} />
+                        <ProfileInput label="Phone Number" value={formData.phone} isEditing={isEditing} onChange={(v) => setFormData({ ...formData, phone: v })} />
                         <div className="space-y-1.5">
                             <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Address</label>
                             {isEditing ? (
-                                <textarea 
+                                <textarea
                                     className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm font-medium focus:bg-white focus:border-red-500 outline-none transition-all"
                                     value={formData.address}
-                                    onChange={(e) => setFormData({...formData, address: e.target.value})}
+                                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                                     rows={2}
                                 />
                             ) : (
@@ -142,7 +147,7 @@ function ProfileInput({ label, value, isEditing, onChange }) {
         <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">{label}</label>
             {isEditing ? (
-                <input 
+                <input
                     type="text"
                     className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-sm font-medium focus:bg-white focus:border-red-500 outline-none transition-all"
                     value={value}

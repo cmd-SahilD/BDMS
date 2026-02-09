@@ -21,11 +21,20 @@ export async function GET(request) {
         if (user.role === "donor") {
             // Donors can only see their own history
             query.donorId = user.userId;
+        } else if (user.role === "hospital" || user.role === "blood-bank") {
+            // Facilities can only see donations recorded by them
+            query.facilityId = user.userId;
+
+            // If they want to filter by specific donor within their records
+            if (donorId) {
+                query.donorId = donorId;
+            }
         } else if (donorId) {
-            // Admins/Hospitals/Blood Banks can see specific donor history
+            // Admins can see specific donor history
             query.donorId = donorId;
         }
-        // If no donorId specified for blood-bank/admin, return all
+
+        // Admins see all if no donorId provided
 
         const donations = await Donation.find(query)
             .sort({ date: -1 })
@@ -38,6 +47,8 @@ export async function GET(request) {
         return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }
 }
+
+import Inventory from "@/models/Inventory";
 
 export async function POST(request) {
     try {
@@ -68,6 +79,15 @@ export async function POST(request) {
 
         // Update donor's last donation date
         await User.findByIdAndUpdate(donorId, { lastDonationDate: donation.date });
+
+        // Sync with Inventory if status is Completed
+        if (donation.status === "Completed") {
+            await Inventory.findOneAndUpdate(
+                { facilityId: user.userId, bloodType: type },
+                { $inc: { units: units || 1 } },
+                { upsert: true, new: true, setDefaultsOnInsert: true }
+            );
+        }
 
         return NextResponse.json({ message: "Donation recorded successfully", donation }, { status: 201 });
     } catch (error) {

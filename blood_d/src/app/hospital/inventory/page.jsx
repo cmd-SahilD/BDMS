@@ -1,51 +1,56 @@
-import { Droplets, AlertTriangle, CheckCircle2, Clock, Search } from "lucide-react";
-import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
-import connectToDatabase from "@/lib/db";
-import User from "@/models/User";
-import Inventory from "@/models/Inventory";
+"use client";
+import { useEffect, useState, useMemo } from "react";
+import { Droplets, AlertTriangle, CheckCircle2, Clock, Search, Building2, RefreshCw } from "lucide-react";
+import axios from "axios";
+import { getCompatibleRecipients } from "@/lib/bloodMatching";
+import Skeleton from "@/components/ui/Skeleton";
 
-export default async function HospitalInventoryPage() {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
-
-    let user = null;
-    let inventory = [];
-    let stats = {
+export default function HospitalInventoryPage() {
+    const [hospitalInventory, setHospitalInventory] = useState([]);
+    const [bloodBankInventory, setBloodBankInventory] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState({
         totalUnits: 0,
         bloodTypes: 0,
         lowStock: 0,
         expiringSoon: 0
-    };
+    });
 
-    if (token) {
+    const fetchInventory = async () => {
         try {
-            const secret = new TextEncoder().encode(process.env.JWT_SECRET || "default_secret_please_change");
-            const { payload } = await jwtVerify(token, secret);
+            setLoading(true);
+            const response = await axios.get('/api/inventory?includeBloodBanks=true');
 
-            await connectToDatabase();
-            user = await User.findById(payload.userId);
-            
-            if (user) {
-                inventory = await Inventory.find({ facilityId: user._id }).sort({ bloodType: 1 });
-                
-                stats.totalUnits = inventory.reduce((acc, item) => acc + item.units, 0);
-                stats.bloodTypes = new Set(inventory.filter(i => i.units > 0).map(i => i.bloodType)).size;
-                stats.lowStock = inventory.filter(i => i.units < 10 && i.units > 0).length;
-                stats.expiringSoon = inventory.filter(i => {
-                    if (!i.expiryDate) return false;
-                    const daysToExpiry = Math.ceil((new Date(i.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
-                    return daysToExpiry <= 7 && daysToExpiry > 0;
-                }).length;
+            if (response.data.hospitalInventory) {
+                // API returned split data
+                setHospitalInventory(response.data.hospitalInventory || []);
+                setBloodBankInventory(response.data.bloodBankInventory || []);
+
+                const inventory = response.data.hospitalInventory || [];
+                setStats({
+                    totalUnits: inventory.reduce((acc, item) => acc + item.units, 0),
+                    bloodTypes: new Set(inventory.filter(i => i.units > 0).map(i => i.bloodType)).size,
+                    lowStock: inventory.filter(i => i.units < 10 && i.units > 0).length,
+                    expiringSoon: inventory.filter(i => {
+                        if (!i.expiryDate) return false;
+                        const daysToExpiry = Math.ceil((new Date(i.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
+                        return daysToExpiry <= 7 && daysToExpiry > 0;
+                    }).length
+                });
+            } else {
+                // Fallback for old API format
+                setHospitalInventory(response.data || []);
             }
         } catch (error) {
-            console.error("Inventory Fetch Error:", error.message);
+            console.error("Error fetching inventory:", error);
+        } finally {
+            setLoading(false);
         }
-    }
+    };
 
-    if (!user) {
-        return <div className="p-12 text-center text-gray-500 font-medium">Please login to view inventory.</div>;
-    }
+    useEffect(() => {
+        fetchInventory();
+    }, []);
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -58,8 +63,15 @@ export default async function HospitalInventoryPage() {
                         </div>
                         <h1 className="text-2xl font-bold text-gray-900">Blood Inventory</h1>
                     </div>
-                    <p className="text-gray-500 text-sm ml-13">View and manage your hospital's blood stock</p>
+                    <p className="text-gray-500 text-sm ml-13">View your hospital's inventory and available blood bank stock</p>
                 </div>
+                <button
+                    onClick={fetchInventory}
+                    className="p-2.5 hover:bg-gray-100 rounded-lg transition-colors"
+                    disabled={loading}
+                >
+                    <RefreshCw className={`w-5 h-5 text-gray-400 ${loading ? 'animate-spin' : ''}`} />
+                </button>
             </div>
 
             {/* Stats */}
@@ -70,23 +82,27 @@ export default async function HospitalInventoryPage() {
                 <StatCard value={stats.expiringSoon} label="Expiring Soon" icon={Clock} color="red" />
             </div>
 
-            {/* Inventory Grid */}
+            {/* Hospital's Own Inventory */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="p-6 border-b border-gray-50">
+                <div className="p-6 border-b border-gray-50 bg-gradient-to-r from-blue-50 to-white">
                     <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                        <Droplets className="w-5 h-5 text-red-500" />
-                        Blood Stock Details
+                        <Droplets className="w-5 h-5 text-blue-500" />
+                        Your Hospital Inventory
                     </h3>
-                    <p className="text-xs text-gray-500 mt-1">All blood types in your inventory</p>
+                    <p className="text-xs text-gray-500 mt-1">Blood stock currently held by your facility</p>
                 </div>
 
-                {inventory.length > 0 ? (
+                {loading ? (
+                    <div className="p-6 space-y-3">
+                        {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-16 w-full rounded-xl" />)}
+                    </div>
+                ) : hospitalInventory.length > 0 ? (
                     <div className="divide-y divide-gray-50">
-                        {inventory.map((item) => (
-                            <InventoryRow 
-                                key={item._id} 
-                                type={item.bloodType} 
-                                units={item.units} 
+                        {hospitalInventory.map((item) => (
+                            <HospitalInventoryRow
+                                key={item._id}
+                                type={item.bloodType}
+                                units={item.units}
                                 status={item.status || "Adequate"}
                                 expiryDate={item.expiryDate ? new Date(item.expiryDate).toLocaleDateString() : "N/A"}
                                 updatedAt={new Date(item.updatedAt).toLocaleDateString()}
@@ -100,6 +116,42 @@ export default async function HospitalInventoryPage() {
                         </div>
                         <h4 className="font-bold text-gray-700 mb-2">No Inventory Records</h4>
                         <p className="text-gray-500 text-sm">You don't have any blood inventory yet. Request blood from blood banks to build your stock.</p>
+                    </div>
+                )}
+            </div>
+
+            {/* Blood Bank Inventory */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="p-6 border-b border-gray-50 bg-gradient-to-r from-red-50 to-white">
+                    <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                        <Building2 className="w-5 h-5 text-red-500" />
+                        Available from Blood Banks
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-1">Aggregated blood stock from all verified blood banks</p>
+                </div>
+
+                {loading ? (
+                    <div className="p-6 space-y-3">
+                        {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-16 w-full rounded-xl" />)}
+                    </div>
+                ) : bloodBankInventory.length > 0 ? (
+                    <div className="divide-y divide-gray-50">
+                        {bloodBankInventory.map((item) => (
+                            <BloodBankInventoryRow
+                                key={item.bloodType}
+                                type={item.bloodType}
+                                units={item.totalUnits}
+                                sources={item.sources}
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="p-12 text-center">
+                        <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                            <Building2 className="w-8 h-8 text-gray-300" />
+                        </div>
+                        <h4 className="font-bold text-gray-700 mb-2">No Blood Bank Stock</h4>
+                        <p className="text-gray-500 text-sm">Blood banks currently don't have any inventory available.</p>
                     </div>
                 )}
             </div>
@@ -128,7 +180,7 @@ function StatCard({ value, label, icon: Icon, color }) {
     );
 }
 
-function InventoryRow({ type, units, status, expiryDate, updatedAt }) {
+function HospitalInventoryRow({ type, units, status, expiryDate, updatedAt }) {
     const statusColors = {
         Adequate: "bg-green-100 text-green-600",
         Low: "bg-yellow-100 text-yellow-600",
@@ -159,6 +211,61 @@ function InventoryRow({ type, units, status, expiryDate, updatedAt }) {
                     {isLow ? "Low" : status}
                 </span>
             </div>
+        </div>
+    );
+}
+
+function BloodBankInventoryRow({ type, units, sources }) {
+    const recipients = useMemo(() => getCompatibleRecipients(type), [type]);
+    const [showSources, setShowSources] = useState(false);
+
+    return (
+        <div className="p-5 hover:bg-red-50/30 transition-colors">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-sm shadow-sm
+                        ${type === 'O-' ? 'bg-red-600 text-white' :
+                            type.includes('+') ? 'bg-red-50 text-red-600 border border-red-100' :
+                                'bg-purple-50 text-purple-600 border border-purple-100'}`}>
+                        {type}
+                    </div>
+                    <div>
+                        <h4 className="font-bold text-gray-900 text-sm flex items-center gap-2">
+                            {units} Units Available
+                            <span className="text-[10px] font-normal text-gray-400">from {sources.length} blood bank{sources.length !== 1 ? 's' : ''}</span>
+                        </h4>
+                        <p className="text-[10px] text-gray-500">
+                            Can give to: <span className="text-gray-700 font-medium">{recipients.join(', ')}</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    <span className={`px-3 py-1 rounded-lg text-[10px] uppercase font-bold tracking-wider ${units < 10 ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600'}`}>
+                        {units < 10 ? 'Limited' : 'Available'}
+                    </span>
+                    <button
+                        onClick={() => setShowSources(!showSources)}
+                        className="text-xs text-red-600 hover:text-red-700 font-medium underline"
+                    >
+                        {showSources ? 'Hide' : 'View'} Sources
+                    </button>
+                </div>
+            </div>
+
+            {showSources && (
+                <div className="mt-4 pl-16 space-y-2">
+                    {sources.map((source, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
+                            <div className="flex items-center gap-2">
+                                <Building2 className="w-4 h-4 text-gray-400" />
+                                <span className="text-xs font-medium text-gray-700">{source.facilityName}</span>
+                            </div>
+                            <span className="text-xs text-gray-500">{source.units} units</span>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

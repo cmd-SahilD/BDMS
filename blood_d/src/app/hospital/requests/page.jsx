@@ -1,8 +1,9 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { Droplets, Send } from "lucide-react";
+"use client";
+import { useState, useEffect, useMemo } from 'react';
+import { Droplets, Send, Info, Hospital as Building2 } from "lucide-react";
 import axios from 'axios';
+import { getCompatibleDonors } from '@/lib/bloodMatching';
+import SearchInput from '@/components/ui/SearchInput';
 
 export default function RequestsPage() {
     const [labs, setLabs] = useState([]);
@@ -15,6 +16,7 @@ export default function RequestsPage() {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [user, setUser] = useState(null);
+    const [labSearch, setLabSearch] = useState('');
 
     useEffect(() => {
         // Fetch Labs
@@ -40,6 +42,17 @@ export default function RequestsPage() {
 
         fetchLabs();
     }, []);
+
+    const filteredLabs = useMemo(() => {
+        return labs.filter(lab => {
+            const name = (lab.facilityName || lab.name || '').toLowerCase();
+            return name.includes(labSearch.toLowerCase());
+        });
+    }, [labs, labSearch]);
+
+    const compatibleTypes = useMemo(() => {
+        return getCompatibleDonors(formData.bloodType);
+    }, [formData.bloodType]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -126,6 +139,15 @@ export default function RequestsPage() {
                                     <option key={type} value={type}>{type}</option>
                                 ))}
                             </select>
+                            {compatibleTypes.length > 0 && (
+                                <div className="mt-2 p-2 bg-blue-50 rounded-lg flex items-start gap-2 border border-blue-100">
+                                    <Info className="w-3.5 h-3.5 text-blue-500 mt-0.5" />
+                                    <p className="text-[10px] text-blue-700 leading-tight">
+                                        <strong>Compatibility Tip:</strong> {formData.bloodType} can be fulfilled by donors with types:
+                                        <span className="font-bold ml-1">{compatibleTypes.join(', ')}</span>
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
                         <div>
@@ -156,15 +178,23 @@ export default function RequestsPage() {
                 </div>
             </div>
 
-            <div className="max-w-xl mx-auto mt-12">
-                <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2 text-sm">
-                    <svg className="w-4 h-4 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><circle cx="12" cy="10" r="3" /></svg>
-                    Available Blood Banks ({labs.length})
-                </h3>
+            <div className="max-w-xl mx-auto mt-12 bg-gray-50/50 p-6 rounded-3xl border border-gray-100">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <h3 className="font-bold text-gray-800 flex items-center gap-2 text-sm shrink-0">
+                        <Building2 className="w-4 h-4 text-red-600" />
+                        Available Blood Banks ({filteredLabs.length})
+                    </h3>
+                    <SearchInput
+                        value={labSearch}
+                        onChange={setLabSearch}
+                        placeholder="Search banks..."
+                        className="flex-1 md:max-w-[200px]"
+                    />
+                </div>
 
-                <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                    {labs.length > 0 ? (
-                        labs.map(lab => (
+                <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+                    {filteredLabs.length > 0 ? (
+                        filteredLabs.map(lab => (
                             <LabItem
                                 key={lab._id}
                                 name={lab.facilityName || lab.name}
@@ -174,7 +204,10 @@ export default function RequestsPage() {
                             />
                         ))
                     ) : (
-                        <div className="p-4 text-center text-gray-500 text-sm">No labs found</div>
+                        <div className="p-10 text-center">
+                            <Building2 className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+                            <p className="text-gray-400 text-xs">No blood banks found</p>
+                        </div>
                     )}
                 </div>
             </div>

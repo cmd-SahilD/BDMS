@@ -2,14 +2,73 @@ import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 import Camp from "@/models/Camp";
 
+import { getUserFromRequest } from "@/lib/auth";
+import { logActivity } from "@/lib/logger";
+
 export async function GET(req) {
     try {
         await connectToDatabase();
+        const user = await getUserFromRequest(req);
 
-        // Can add filtering here based on query params if needed
-        const camps = await Camp.find().sort({ date: 1 });
+        let query = {};
+        if (user) {
+            if (user.role === "hospital" || user.role === "blood-bank") {
+                // Facility can only see their own camps
+                query.organizerId = user.userId;
+            }
+            // Admins see all
+        }
 
-        return NextResponse.json(camps, { status: 200 });
+        const camps = await Camp.find(query).sort({ date: 1 });
+
+        // Auto-update status logic
+        const now = new Date();
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+        const refinedCamps = await Promise.all(camps.map(async (camp) => {
+            const campDate = new Date(camp.date);
+
+            // Normalize camp date to start of day for comparison
+            const campStartOfDay = new Date(campDate.getFullYear(), campDate.getMonth(), campDate.getDate());
+
+            if (campStartOfDay < startOfToday) {
+                // Past date -> Completed
+                if (camp.status !== 'Completed') {
+                    camp.status = 'Completed';
+                    await camp.save();
+                }
+            } else if (campStartOfDay.getTime() === startOfToday.getTime()) {
+                // Today -> Check time
+                try {
+                    const [startH, startM] = camp.startTime.split(':').map(Number);
+                    const [endH, endM] = camp.endTime.split(':').map(Number);
+
+                    const campStart = new Date(now);
+                    campStart.setHours(startH, startM, 0);
+
+                    const campEnd = new Date(now);
+                    campEnd.setHours(endH, endM, 0);
+
+                    if (now >= campStart && now <= campEnd) {
+                        if (camp.status !== 'Ongoing') {
+                            camp.status = 'Ongoing';
+                            await camp.save();
+                        }
+                    } else if (now > campEnd) {
+                        if (camp.status !== 'Completed') {
+                            camp.status = 'Completed';
+                            await camp.save();
+                        }
+                    }
+                    // Else: it is before start time, keep as 'Upcoming'
+                } catch (e) {
+                    console.error("Error parsing camp time:", e);
+                }
+            }
+            return camp;
+        }));
+
+        return NextResponse.json(refinedCamps, { status: 200 });
     } catch (error) {
         console.error("Fetch camps error:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
@@ -34,6 +93,10 @@ export async function POST(req) {
         });
 
         await newCamp.save();
+
+        // Log activity
+        await logActivity(organizerId, "Camp Scheduled", `Scheduled camp "${name}" on ${date}`, "blue");
+
         return NextResponse.json({ message: "Camp created successfully", camp: newCamp }, { status: 201 });
     } catch (error) {
         console.error("Create camp error:", error);

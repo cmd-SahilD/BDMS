@@ -1,7 +1,10 @@
 "use client";
-import { Search, Mail, ShieldCheck, MapPin, Building2,Plus, Phone, Clock, FileText, CheckCircle, XCircle } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Mail, ShieldCheck, MapPin, Building2, Plus, Phone, Clock, FileText, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
+import SearchInput from "@/components/ui/SearchInput";
+import Pagination from "@/components/ui/Pagination";
+import Skeleton, { StatsSkeleton } from "@/components/ui/Skeleton";
 
 export default function FacilitiesPage() {
     const [facilities, setFacilities] = useState([]);
@@ -9,6 +12,8 @@ export default function FacilitiesPage() {
     const [filterType, setFilterType] = useState('All Types');
     const [filterStatus, setFilterStatus] = useState('All Status');
     const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 6;
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [addLoading, setAddLoading] = useState(false);
@@ -81,20 +86,34 @@ export default function FacilitiesPage() {
         }
     };
 
-    const filteredFacilities = facilities.filter(f => {
-        const matchesSearch = f.facilityName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            f.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    const filteredFacilities = useMemo(() => {
+        return facilities.filter(f => {
+            const matchesSearch = !searchTerm ||
+                f.facilityName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                f.email?.toLowerCase().includes(searchTerm.toLowerCase());
 
-        const matchesType = filterType === 'All Types' ||
-            (filterType === 'Hospital' && f.role === 'hospital') ||
-            (filterType === 'Blood Bank' && f.role === 'blood-bank');
+            const matchesType = filterType === 'All Types' ||
+                (filterType === 'Hospital' && f.role === 'hospital') ||
+                (filterType === 'Blood Bank' && f.role === 'blood-bank');
 
-        const matchesStatus = filterStatus === 'All Status' ||
-            (filterStatus === 'Approved' && f.isVerified) ||
-            (filterStatus === 'Pending' && !f.isVerified);
+            const matchesStatus = filterStatus === 'All Status' ||
+                (filterStatus === 'Approved' && f.isVerified) ||
+                (filterStatus === 'Pending' && !f.isVerified);
 
-        return matchesSearch && matchesType && matchesStatus;
-    });
+            return matchesSearch && matchesType && matchesStatus;
+        });
+    }, [facilities, searchTerm, filterType, filterStatus]);
+
+    // Reset to first page when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, filterType, filterStatus]);
+
+    const totalPages = Math.ceil(filteredFacilities.length / itemsPerPage);
+    const paginatedFacilities = filteredFacilities.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     const stats = {
         total: facilities.length,
@@ -132,37 +151,37 @@ export default function FacilitiesPage() {
             </div>
 
             {/* Stats Row */}
-            <div className="grid grid-cols-4 gap-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm text-center divide-x divide-gray-100">
-                <div>
-                    <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-                    <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">Total Facilities</div>
+            {loading ? (
+                <StatsSkeleton count={4} />
+            ) : (
+                <div className="grid grid-cols-4 gap-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm text-center divide-x divide-gray-100">
+                    <div>
+                        <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">Total Facilities</div>
+                    </div>
+                    <div>
+                        <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">Approved</div>
+                    </div>
+                    <div>
+                        <div className="text-2xl font-bold text-orange-500">{stats.pending}</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">Pending</div>
+                    </div>
+                    <div>
+                        <div className="text-2xl font-bold text-red-600">-</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">Rejected</div>
+                    </div>
                 </div>
-                <div>
-                    <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
-                    <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">Approved</div>
-                </div>
-                <div>
-                    <div className="text-2xl font-bold text-orange-500">{stats.pending}</div>
-                    <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">Pending</div>
-                </div>
-                <div>
-                    <div className="text-2xl font-bold text-red-600">-</div>
-                    <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">Rejected</div>
-                </div>
-            </div>
+            )}
 
             {/* Search and Filter */}
             <div className="flex gap-4 flex-col md:flex-row">
-                <div className="flex-1 relative">
-                    <input
-                        type="text"
-                        placeholder="Search facilities by name, email..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none"
-                    />
-                    <Search className="w-5 h-5 text-gray-400 absolute left-3 top-3.5" />
-                </div>
+                <SearchInput
+                    value={searchTerm}
+                    onChange={setSearchTerm}
+                    placeholder="Search facilities by name, email..."
+                    className="flex-1"
+                />
                 <select
                     value={filterType}
                     onChange={(e) => setFilterType(e.target.value)}
@@ -183,19 +202,36 @@ export default function FacilitiesPage() {
 
             {/* Facilities Grid */}
             {loading ? (
-                <div className="text-center py-10 text-gray-500">Loading facilities...</div>
-            ) : filteredFacilities.length === 0 ? (
-                <div className="text-center py-10 text-gray-500">No facilities found.</div>
-            ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {filteredFacilities.map((facility) => (
-                        <FacilityCard
-                            key={facility._id}
-                            data={facility}
-                            onUpdateStatus={handleUpdateStatus}
-                        />
+                    {[1, 2, 3, 4].map(i => (
+                        <Skeleton key={i} variant="card" className="h-[280px]" />
                     ))}
                 </div>
+            ) : paginatedFacilities.length === 0 ? (
+                <div className="text-center py-20 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                    <Building2 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500 font-medium">No facilities found matches your criteria.</p>
+                </div>
+            ) : (
+                <>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {paginatedFacilities.map((facility) => (
+                            <FacilityCard
+                                key={facility._id}
+                                data={facility}
+                                onUpdateStatus={handleUpdateStatus}
+                            />
+                        ))}
+                    </div>
+
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={setCurrentPage}
+                        totalItems={filteredFacilities.length}
+                        itemsPerPage={itemsPerPage}
+                    />
+                </>
             )}
 
             {/* Add Facility Modal */}
@@ -211,45 +247,45 @@ export default function FacilitiesPage() {
                                 <Plus className="w-5 h-5 rotate-45" />
                             </button>
                         </div>
-                        
+
                         <form onSubmit={handleAddFacility} className="p-6 space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="col-span-2">
                                     <label className="block text-sm font-bold text-gray-700 mb-1 uppercase tracking-tight text-[10px]">Facility Name</label>
-                                    <input 
+                                    <input
                                         type="text"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
                                         value={formData.facilityName}
-                                        onChange={(e) => setFormData({...formData, facilityName: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, facilityName: e.target.value })}
                                         required
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-1 uppercase tracking-tight text-[10px]">Email Address</label>
-                                    <input 
+                                    <input
                                         type="email"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
                                         value={formData.email}
-                                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                         required
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-1 uppercase tracking-tight text-[10px]">Password</label>
-                                    <input 
+                                    <input
                                         type="password"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
                                         value={formData.password}
-                                        onChange={(e) => setFormData({...formData, password: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                         required
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-1 uppercase tracking-tight text-[10px]">Role</label>
-                                    <select 
+                                    <select
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
                                         value={formData.role}
-                                        onChange={(e) => setFormData({...formData, role: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                                     >
                                         <option value="hospital">Hospital</option>
                                         <option value="blood-bank">Blood Bank</option>
@@ -257,67 +293,67 @@ export default function FacilitiesPage() {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-1 uppercase tracking-tight text-[10px]">License Number</label>
-                                    <input 
+                                    <input
                                         type="text"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
                                         value={formData.licenseNumber}
-                                        onChange={(e) => setFormData({...formData, licenseNumber: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
                                         required
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-1 uppercase tracking-tight text-[10px]">Phone Number</label>
-                                    <input 
+                                    <input
                                         type="text"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
                                         value={formData.phone}
-                                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                         required
                                     />
                                 </div>
                                 <div className="col-span-2 grid grid-cols-4 gap-3">
                                     <div className="col-span-2">
                                         <label className="block text-sm font-bold text-gray-700 mb-1 uppercase tracking-tight text-[10px]">Street</label>
-                                        <input 
+                                        <input
                                             type="text"
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
                                             value={formData.address.street}
-                                            onChange={(e) => setFormData({...formData, address: {...formData.address, street: e.target.value}})}
+                                            onChange={(e) => setFormData({ ...formData, address: { ...formData.address, street: e.target.value } })}
                                             required
                                         />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-1 uppercase tracking-tight text-[10px]">City</label>
-                                        <input 
+                                        <input
                                             type="text"
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
                                             value={formData.address.city}
-                                            onChange={(e) => setFormData({...formData, address: {...formData.address, city: e.target.value}})}
+                                            onChange={(e) => setFormData({ ...formData, address: { ...formData.address, city: e.target.value } })}
                                             required
                                         />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-1 uppercase tracking-tight text-[10px]">Zip</label>
-                                        <input 
+                                        <input
                                             type="text"
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
                                             value={formData.address.zip}
-                                            onChange={(e) => setFormData({...formData, address: {...formData.address, zip: e.target.value}})}
+                                            onChange={(e) => setFormData({ ...formData, address: { ...formData.address, zip: e.target.value } })}
                                             required
                                         />
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div className="pt-4 flex gap-3">
-                                <button 
+                                <button
                                     type="button"
                                     onClick={() => setIsAddModalOpen(false)}
                                     className="flex-1 py-3 border border-gray-300 text-gray-600 rounded-xl font-bold hover:bg-gray-50 transition-colors"
                                 >
                                     Cancel
                                 </button>
-                                <button 
+                                <button
                                     type="submit"
                                     disabled={addLoading}
                                     className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-red-100 transition-all"
@@ -338,7 +374,12 @@ function FacilityCard({ data, onUpdateStatus }) {
     const { _id, facilityName, email, role, licenseNumber, phone, isVerified, address } = data;
 
     // Address formatting
-    const formattedAddress = address ? `${address.street || ''}, ${address.city || ''}, ${address.state || ''} ${address.zip || ''}` : 'No address provided';
+    // Address formatting
+    const formattedAddress = typeof address === 'string'
+        ? address
+        : address
+            ? `${address.street || ''}, ${address.city || ''}, ${address.state || ''} ${address.zip || ''}`.replace(/^, , $/, '')
+            : 'No address provided';
 
     return (
         <div className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg transition-all">

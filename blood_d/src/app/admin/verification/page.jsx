@@ -60,7 +60,7 @@ export default function VerificationPage() {
                         <p className="text-gray-500 text-sm">Review and verify new donor and facility registration requests</p>
                     </div>
                 </div>
-                <button 
+                <button
                     onClick={fetchPending}
                     className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors bg-white outline-none"
                 >
@@ -97,7 +97,7 @@ export default function VerificationPage() {
                     ) : pendingUsers.length > 0 ? (
                         <div className="space-y-4">
                             {pendingUsers.map((u) => (
-                                <div 
+                                <div
                                     key={u._id}
                                     onClick={() => setSelectedUser(u)}
                                     className={`bg-white p-5 rounded-2xl border transition-all cursor-pointer hover:shadow-md ${selectedUser?._id === u._id ? 'border-red-500 shadow-sm bg-red-50/10' : 'border-gray-100 shadow-sm'}`}
@@ -121,7 +121,7 @@ export default function VerificationPage() {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <button 
+                                            <button
                                                 onClick={(e) => { e.stopPropagation(); handleVerify(u._id); }}
                                                 disabled={actionLoading}
                                                 className="p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors"
@@ -156,7 +156,7 @@ export default function VerificationPage() {
                         {selectedUser ? (
                             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
                                 <h3 className="font-bold text-gray-900 mb-6 border-b border-gray-50 pb-4">Verification Details</h3>
-                                
+
                                 <div className="space-y-6">
                                     <div className="flex items-center gap-4">
                                         <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold ${selectedUser.role === 'donor' ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}`}>
@@ -172,11 +172,17 @@ export default function VerificationPage() {
                                         <DetailItem icon={Mail} label="Email Address" value={selectedUser.email} />
                                         <DetailItem icon={Phone} label="Phone Number" value={selectedUser.phone || 'N/A'} />
                                         <DetailItem icon={MapPin} label="Address" value={
-                                            selectedUser.address 
-                                            ? `${selectedUser.address.street}, ${selectedUser.address.city}`
-                                            : 'N/A'
+                                            (() => {
+                                                const addr = selectedUser.address;
+                                                if (!addr) return 'N/A';
+                                                if (typeof addr === 'string') return addr;
+                                                // Robustly join parts
+                                                const parts = [addr.street, addr.city, addr.state, addr.zip]
+                                                    .filter(p => p && p !== 'undefined' && p.trim() !== '');
+                                                return parts.length > 0 ? parts.join(', ') : 'N/A';
+                                            })()
                                         } />
-                                        
+
                                         {selectedUser.role === 'donor' && (
                                             <>
                                                 <DetailItem icon={Droplets} label="Blood Type" value={selectedUser.bloodType || 'N/A'} />
@@ -190,7 +196,7 @@ export default function VerificationPage() {
                                     </div>
 
                                     <div className="pt-6 border-t border-gray-50 space-y-3">
-                                        <button 
+                                        <button
                                             onClick={() => handleVerify(selectedUser._id)}
                                             disabled={actionLoading}
                                             className="w-full py-3 bg-green-600 text-white rounded-xl font-bold text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
@@ -198,7 +204,7 @@ export default function VerificationPage() {
                                             <Check className="w-5 h-5" />
                                             {actionLoading ? 'Verifying...' : 'Approve Registration'}
                                         </button>
-                                        <button 
+                                        <button
                                             disabled={actionLoading}
                                             className="w-full py-3 bg-white text-gray-400 rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 border border-gray-100"
                                         >

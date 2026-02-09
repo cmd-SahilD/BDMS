@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
 
-export async function proxy(request) {
+export async function middleware(request) {
     // Get the path from the request URL
     const path = request.nextUrl.pathname;
 
