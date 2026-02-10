@@ -1693,3 +1693,5 @@
 {"sessionId":"debug-session","runId":"run1","hypothesisId":"H7","location":"layout.jsx:render","message":"Root layout render (fs)","data":{"host":"localhost:3000","path":"http://localhost:3000/admin/camps"},"timestamp":1769762543039}
 {"sessionId":"debug-session","runId":"run1","hypothesisId":"H7","location":"layout.jsx:render","message":"Root layout render (fs)","data":{"host":"localhost:3000","path":null},"timestamp":1770218738132}
 {"sessionId":"debug-session","runId":"run1","hypothesisId":"H7","location":"layout.jsx:render","message":"Root layout render (fs)","data":{"host":"localhost:3000","path":"http://localhost:3000/admin/settings"},"timestamp":1770218818682}
+{"sessionId":"debug-session","runId":"run1","hypothesisId":"H7","location":"layout.jsx:render","message":"Root layout render (fs)","data":{"host":"localhost:3000","path":null},"timestamp":1770699117712}
+{"sessionId":"debug-session","runId":"run1","hypothesisId":"H7","location":"layout.jsx:render","message":"Root layout render (fs)","data":{"host":"localhost:3000","path":"http://localhost:3000/hospital/requests"},"timestamp":1770701283616}

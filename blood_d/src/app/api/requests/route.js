@@ -108,6 +108,30 @@ export async function PUT(req) {
 
                 await item.save();
             }
+
+            // Add inventory to the requesting hospital
+            const hospitalInventoryItem = await Inventory.findOne({
+                facilityId: requestToAccept.requesterId,
+                bloodType: bloodType
+            });
+
+            if (hospitalInventoryItem) {
+                // Update existing inventory
+                hospitalInventoryItem.units += units;
+                hospitalInventoryItem.status = hospitalInventoryItem.units >= 10 ? 'Adequate' :
+                    hospitalInventoryItem.units >= 5 ? 'Low' : 'Critical';
+                await hospitalInventoryItem.save();
+            } else {
+                // Create new inventory entry for hospital
+                const newInventoryItem = new Inventory({
+                    facilityId: requestToAccept.requesterId,
+                    bloodType: bloodType,
+                    units: units,
+                    expiryDate: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000), // 35 days from now
+                    status: units >= 10 ? 'Adequate' : units >= 5 ? 'Low' : 'Critical'
+                });
+                await newInventoryItem.save();
+            }
         }
 
         // Update the request status

@@ -115,7 +115,11 @@ export default function HospitalInventoryPage() {
                             <Droplets className="w-8 h-8 text-gray-300" />
                         </div>
                         <h4 className="font-bold text-gray-700 mb-2">No Inventory Records</h4>
-                        <p className="text-gray-500 text-sm">You don't have any blood inventory yet. Request blood from blood banks to build your stock.</p>
+                        <p className="text-gray-500 text-sm max-w-md mx-auto">
+                            You don't have any blood inventory yet. To receive blood, create a request in the{' '}
+                            <span className="font-semibold text-blue-600">Requests</span> page. Once a blood bank approves
+                            your request, the blood will appear here in your inventory.
+                        </p>
                     </div>
                 )}
             </div>
